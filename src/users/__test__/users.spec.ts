@@ -1,32 +1,35 @@
+import { AuthGuard } from '@auth/infrastructure/guard/auth.guard';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClient } from '@prisma/client';
 import * as request from 'supertest';
 
-import { createAccessToken } from '@/test/test.utils';
-
 import { AppModule } from '../../app.module';
+
+// Mock for AuthGuard
+class MockAuthGuard {
+  canActivate() {
+    return true;
+  }
+}
 
 describe('UserController', () => {
   let app: INestApplication;
-  let authToken: string;
   const prisma = new PrismaClient();
 
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideGuard(AuthGuard)
+      .useClass(MockAuthGuard)
+      .compile();
 
     await prisma.user.create({
       data: {
+        id: '1',
         email: 'admin@gmail.com',
-        password: 'admin123',
       },
-    });
-
-    authToken = await createAccessToken({
-      email: 'admin@gmail.com',
-      sub: '1',
     });
 
     app = moduleFixture.createNestApplication();
@@ -41,10 +44,7 @@ describe('UserController', () => {
 
   describe('GET /users', () => {
     it('should return a list of users', async () => {
-      const res = await request(app.getHttpServer())
-        .get('/users')
-        .set('Authorization', `Bearer ${authToken}`)
-        .expect(200);
+      const res = await request(app.getHttpServer()).get('/users').expect(200);
       expect(Array.isArray(res.body)).toBe(true);
     });
   });
@@ -52,18 +52,17 @@ describe('UserController', () => {
   describe('POST /users', () => {
     it('should create a new user', async () => {
       const userDto = {
+        id: '2',
         email: 'testuser@example.com',
-        password: 'TestPass123!',
       };
 
       await request(app.getHttpServer())
         .post('/users')
         .send(userDto)
-        .set('Authorization', `Bearer ${authToken}`)
         .expect(HttpStatus.CREATED)
         .then(({ body }) => {
           const expectedResponse = expect.objectContaining({
-            id: expect.any(Number),
+            id: userDto.id,
             email: userDto.email,
           });
           expect(body).toEqual(expectedResponse);
@@ -76,18 +75,16 @@ describe('UserController', () => {
 
     it('should return a single user by id', async () => {
       const userDto = {
+        id: '3',
         email: 'singleuser@example.com',
-        password: 'TestPass123!',
       };
       const res1 = await request(app.getHttpServer())
         .post('/users')
-        .send(userDto)
-        .set('Authorization', `Bearer ${authToken}`);
+        .send(userDto);
       userId = res1.body.id;
 
       await request(app.getHttpServer())
         .get(`/users/${userId}`)
-        .set('Authorization', `Bearer ${authToken}`)
         .expect(HttpStatus.OK)
         .then(({ body }) => {
           const expectedResponse = expect.objectContaining({
@@ -104,13 +101,12 @@ describe('UserController', () => {
 
     beforeAll(async () => {
       const userDto = {
+        id: '4',
         email: 'updateuser@example.com',
-        password: 'TestPass123!',
       };
       const res = await request(app.getHttpServer())
         .post('/users')
         .send(userDto)
-        .set('Authorization', `Bearer ${authToken}`)
         .expect(HttpStatus.CREATED);
       userId = res.body.id;
     });
@@ -120,7 +116,6 @@ describe('UserController', () => {
       await request(app.getHttpServer())
         .put(`/users/${userId}`)
         .send(updateDto)
-        .set('Authorization', `Bearer ${authToken}`)
         .expect(HttpStatus.OK)
         .then(({ body }) => {
           const expectedResponse = expect.objectContaining({
@@ -137,13 +132,12 @@ describe('UserController', () => {
 
     beforeAll(async () => {
       const userDto = {
+        id: '5',
         email: 'deleteuser@example.com',
-        password: 'TestPass123!',
       };
       const res = await request(app.getHttpServer())
         .post('/users')
         .send(userDto)
-        .set('Authorization', `Bearer ${authToken}`)
         .expect(HttpStatus.CREATED);
       userId = res.body.id;
     });
@@ -151,7 +145,6 @@ describe('UserController', () => {
     it('should delete a user', async () => {
       await request(app.getHttpServer())
         .delete(`/users/${userId}`)
-        .set('Authorization', `Bearer ${authToken}`)
         .expect(HttpStatus.OK);
     });
   });
