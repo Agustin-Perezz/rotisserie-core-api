@@ -6,7 +6,6 @@ import {
   Optional,
 } from '@nestjs/common';
 import * as admin from 'firebase-admin';
-import * as fs from 'fs';
 
 import { IFirebaseService } from '../../domain/interfaces/firebase-service.interface';
 import { FirebaseConfig } from '../../infrastructure/config/firebase-config.interface';
@@ -27,21 +26,7 @@ export class FirebaseService implements OnModuleInit, IFirebaseService {
   private initializeFirebase() {
     try {
       if (admin.apps.length === 0) {
-        let credential: admin.credential.Credential;
-
-        if (this.config.credential) {
-          credential = this.config.credential;
-        } else if (
-          this.config.serviceAccountPath &&
-          fs.existsSync(this.config.serviceAccountPath)
-        ) {
-          const serviceAccount = JSON.parse(
-            fs.readFileSync(this.config.serviceAccountPath, 'utf8'),
-          );
-          credential = admin.credential.cert(serviceAccount);
-        } else {
-          credential = admin.credential.applicationDefault();
-        }
+        const credential = admin.credential.applicationDefault();
 
         this.firebaseApp = admin.initializeApp({
           credential,
