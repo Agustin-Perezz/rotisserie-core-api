@@ -3,9 +3,17 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaClient } from '@prisma/client';
 import * as request from 'supertest';
 
+import { AuthGuard } from '@/auth/infrastructure/guard/auth.guard';
 import { PrismaModule } from '@/prisma/prisma.module';
 
 import { AuthModule } from '../auth.module';
+
+// Mock for AuthGuard
+class MockAuthGuard {
+  canActivate() {
+    return true;
+  }
+}
 
 describe('AuthController', () => {
   let app: INestApplication;
@@ -14,7 +22,10 @@ describe('AuthController', () => {
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AuthModule, PrismaModule],
-    }).compile();
+    })
+      .overrideGuard(AuthGuard)
+      .useClass(MockAuthGuard)
+      .compile();
 
     app = moduleFixture.createNestApplication();
     await app.init();
@@ -30,51 +41,28 @@ describe('AuthController', () => {
     it('should register a user', async () => {
       return request(app.getHttpServer())
         .post('/auth/signup')
-        .send({ email: 'test@gmail.com', password: 'test' })
+        .send({ email: 'test@gmail.com', firebaseUid: 'firebase-test-uid-1' })
         .expect(HttpStatus.CREATED);
     });
+
     it('should throw error if user already exists', async () => {
       await prisma.user.create({
         data: {
+          id: 'duplicate-firebase-uid',
           email: 'duplicate@test.com',
-          password: 'password123',
         },
       });
+
       return request(app.getHttpServer())
         .post('/auth/signup')
-        .send({ email: 'duplicate@test.com', password: 'password123' })
+        .send({
+          email: 'duplicate@test.com',
+          firebaseUid: 'duplicate-firebase-uid',
+        })
         .expect(HttpStatus.CONFLICT)
         .then(({ body }) => {
           const expectedResponse = expect.objectContaining({
             message: 'User already exists',
-          });
-          expect(body).toEqual(expectedResponse);
-        });
-    });
-  });
-
-  describe('/auth/signin (POST)', () => {
-    it('should return access_token for valid credentials', async () => {
-      return request(app.getHttpServer())
-        .post('/auth/signin')
-        .send({ email: 'test@gmail.com', password: 'test' })
-        .expect(HttpStatus.OK)
-        .then(({ body }) => {
-          const expectedResponse = expect.objectContaining({
-            access_token: expect.any(String),
-          });
-          expect(body).toEqual(expectedResponse);
-        });
-    });
-
-    it('should return 401 for invalid credentials', async () => {
-      return request(app.getHttpServer())
-        .post('/auth/signin')
-        .send({ email: 'test@gmail.com', password: 'wrong' })
-        .expect(HttpStatus.UNAUTHORIZED)
-        .then(({ body }) => {
-          const expectedResponse = expect.objectContaining({
-            message: 'Invalid credentials',
           });
           expect(body).toEqual(expectedResponse);
         });
