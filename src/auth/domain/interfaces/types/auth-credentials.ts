@@ -1,6 +1,6 @@
 export interface AuthCredentials {
   email: string;
-  password: string;
+  firebaseUid: string;
 }
 
 export interface AuthToken {
