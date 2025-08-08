@@ -4,9 +4,9 @@ import { UpdateUserDto } from '@users/application/dto/udpate-user.dto';
 
 export interface IUserRepository {
   findAll(): Promise<User[]>;
-  findOne(id: number): Promise<User | null>;
+  findOne(id: string): Promise<User | null>;
   findByEmail(email: string): Promise<User | null>;
   create(data: CreateUserDto): Promise<User>;
-  update(id: number, data: UpdateUserDto): Promise<User>;
-  delete(id: number): Promise<User>;
+  update(id: string, data: UpdateUserDto): Promise<User>;
+  delete(id: string): Promise<User>;
 }
