@@ -1,53 +1,35 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Shop } from '@prisma/client';
 
-import { PrismaService } from '@/prisma/prisma.service';
-
+import { ShopRepository } from '../../infrastructure/persistence/shop.repository.impl';
 import { CreateShopDto } from '../dto/create-shop.dto';
 import { UpdateShopDto } from '../dto/update-shop.dto';
 
 @Injectable()
 export class ShopService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private shopRepository: ShopRepository) {}
 
   async findAll(): Promise<Shop[]> {
-    return this.prisma.shop.findMany();
+    return this.shopRepository.findAll();
   }
 
   async findOne(id: string): Promise<Shop | null> {
-    return this.prisma.shop.findUnique({
-      where: { id },
-    });
+    return this.shopRepository.findOne(id);
   }
 
   async findByOwner(ownerId: string): Promise<Shop[]> {
-    return this.prisma.shop.findMany({
-      where: { ownerId },
-    });
+    return this.shopRepository.findByOwner(ownerId);
   }
 
   async create(data: CreateShopDto): Promise<Shop> {
-    const owner = await this.prisma.user.findUnique({
-      where: { id: data.ownerId },
-    });
-
-    if (!owner) {
-      throw new BadRequestException('Owner not found');
-    }
-
-    return this.prisma.shop.create({ data });
+    return this.shopRepository.add(data);
   }
 
   async update(id: string, data: UpdateShopDto): Promise<Shop> {
-    return this.prisma.shop.update({
-      where: { id },
-      data,
-    });
+    return this.shopRepository.update(id, data);
   }
 
   async delete(id: string): Promise<Shop> {
-    return this.prisma.shop.delete({
-      where: { id },
-    });
+    return this.shopRepository.remove(id);
   }
 }
