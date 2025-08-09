@@ -6,8 +6,9 @@ import * as request from 'supertest';
 
 import { AppModule } from '../../app.module';
 
-// Mock for AuthGuard
 class MockAuthGuard {
+  constructor() {}
+
   canActivate() {
     return true;
   }
@@ -26,7 +27,6 @@ describe('ShopController', () => {
       .useClass(MockAuthGuard)
       .compile();
 
-    // Create a test user for ownership
     await prisma.user.create({
       data: {
         id: 'shop-test-user',

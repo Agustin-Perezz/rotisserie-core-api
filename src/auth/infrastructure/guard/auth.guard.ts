@@ -6,11 +6,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { Request } from 'express';
-import * as auth from 'firebase-admin/auth';
+
+import { FirebaseService } from '@/firebase/application/services/firebase.service';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
-  constructor() {}
+  constructor(private readonly firebaseService: FirebaseService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<IRequestWithUser>();
@@ -20,7 +21,7 @@ export class AuthGuard implements CanActivate {
     }
 
     try {
-      const decoded = await auth.getAuth().verifyIdToken(token);
+      const decoded = await this.firebaseService.getAuth().verifyIdToken(token);
       const payload = { email: decoded.email ?? '', sub: decoded.sub };
 
       request['user'] = payload;
