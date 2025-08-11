@@ -1,29 +1,36 @@
 import { IRequestWithUser } from '@auth/domain/interfaces/types/access-token';
 import { ExecutionContext, UnauthorizedException } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import * as auth from 'firebase-admin/auth';
+
+import { FirebaseService } from '@/firebase/application/services/firebase.service';
 
 import { AuthGuard } from '../auth.guard';
 
-jest.mock('firebase-admin/auth', () => ({
+// Create a mock for FirebaseService
+const mockFirebaseService = {
   getAuth: jest.fn().mockReturnValue({
     verifyIdToken: jest.fn(),
   }),
-}));
+};
 
 describe('AuthGuard', () => {
   let guard: AuthGuard;
   let mockVerifyIdToken: jest.Mock;
+  let firebaseService: FirebaseService;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthGuard],
+      providers: [
+        AuthGuard,
+        { provide: FirebaseService, useValue: mockFirebaseService },
+      ],
     }).compile();
 
     guard = module.get<AuthGuard>(AuthGuard);
+    firebaseService = module.get<FirebaseService>(FirebaseService);
     mockVerifyIdToken = jest.fn();
     jest
-      .spyOn(auth.getAuth(), 'verifyIdToken')
+      .spyOn(firebaseService.getAuth(), 'verifyIdToken')
       .mockImplementation(mockVerifyIdToken);
   });
 

@@ -26,7 +26,7 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async create(data: CreateUserDto): Promise<User> {
+  async add(data: CreateUserDto): Promise<User> {
     return this.prisma.user.create({ data });
   }
 
@@ -37,7 +37,7 @@ export class UserRepository implements IUserRepository {
     });
   }
 
-  async delete(id: string): Promise<User> {
+  async remove(id: string): Promise<User> {
     return this.prisma.user.delete({
       where: { id },
     });
