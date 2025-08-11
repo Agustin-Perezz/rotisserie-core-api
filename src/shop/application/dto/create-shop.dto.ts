@@ -12,5 +12,6 @@ export class CreateShopDto {
   location: string;
 
   @IsString()
+  @IsOptional()
   ownerId: string;
 }

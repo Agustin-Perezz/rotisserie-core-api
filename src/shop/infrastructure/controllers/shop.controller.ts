@@ -9,6 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 
+import { UserId } from '@/auth/infrastructure/decorators/user.decorator';
 import { AuthGuard } from '@/auth/infrastructure/guard/auth.guard';
 
 import { CreateShopDto } from '../../application/dto/create-shop.dto';
@@ -36,7 +37,8 @@ export class ShopController {
   }
 
   @Post()
-  create(@Body() shop: CreateShopDto) {
+  create(@Body() shop: CreateShopDto, @UserId() userId: string) {
+    shop.ownerId = userId;
     return this.shopService.create(shop);
   }
 
