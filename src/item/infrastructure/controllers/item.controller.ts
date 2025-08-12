@@ -1,0 +1,47 @@
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Query,
+} from '@nestjs/common';
+
+import { CreateItemDto } from '../../application/dto/create-item.dto';
+import { UpdateItemDto } from '../../application/dto/update-item.dto';
+import { ItemService } from '../../application/services/item.service';
+
+@Controller('items')
+export class ItemController {
+  constructor(private readonly itemService: ItemService) {}
+
+  @Post()
+  create(@Body() createItemDto: CreateItemDto) {
+    return this.itemService.create(createItemDto);
+  }
+
+  @Get()
+  findAll(@Query('shopId') shopId?: string) {
+    if (shopId) {
+      return this.itemService.findByShopId(shopId);
+    }
+    return this.itemService.findAll();
+  }
+
+  @Get(':id')
+  findOne(@Param('id') id: string) {
+    return this.itemService.findById(id);
+  }
+
+  @Patch(':id')
+  update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
+    return this.itemService.update(id, updateItemDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id') id: string) {
+    return this.itemService.delete(id);
+  }
+}
