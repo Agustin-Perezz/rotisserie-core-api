@@ -1,7 +1,7 @@
 import { AuthGuard } from '@auth/infrastructure/guard/auth.guard';
 import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
-import { PrismaClient } from '@prisma/client';
+import { OrderStatus, PrismaClient } from '@prisma/client';
 import * as request from 'supertest';
 
 import { AppModule } from '../../app.module';
@@ -92,7 +92,7 @@ describe('OrderController', () => {
           const expectedResponse = expect.objectContaining({
             id: expect.any(String),
             shopId: orderDto.shopId,
-            status: 'pending',
+            status: OrderStatus.PENDING,
             orderItems: expect.arrayContaining([
               expect.objectContaining({
                 itemId: 'item-1',
@@ -130,7 +130,7 @@ describe('OrderController', () => {
           const expectedResponse = expect.objectContaining({
             id: orderId,
             shopId: orderDto.shopId,
-            status: 'pending',
+            status: OrderStatus.PENDING,
             orderItems: expect.arrayContaining([
               expect.objectContaining({
                 itemId: 'item-1',
@@ -175,7 +175,7 @@ describe('OrderController', () => {
     });
 
     it('should update an order status', async () => {
-      const updateDto = { status: 'completed' };
+      const updateDto = { status: OrderStatus.COMPLETED };
       await request(app.getHttpServer())
         .patch(`/orders/${orderId}`)
         .send(updateDto)

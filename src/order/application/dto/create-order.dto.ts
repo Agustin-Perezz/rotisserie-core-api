@@ -1,6 +1,8 @@
+import { OrderStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
+  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
@@ -22,8 +24,8 @@ export class CreateOrderDto {
   shopId: string;
 
   @IsOptional()
-  @IsString()
-  status?: string;
+  @IsEnum(OrderStatus)
+  status?: OrderStatus;
 
   @IsArray()
   @ValidateNested({ each: true })
