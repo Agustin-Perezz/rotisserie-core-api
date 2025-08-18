@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Order } from '@prisma/client';
+import { Order, OrderStatus } from '@prisma/client';
 
 import { PrismaService } from '@/prisma/prisma.service';
 
@@ -19,6 +19,7 @@ export class OrderRepository implements IOrderRepository {
     return this.prisma.order.create({
       data: {
         ...orderData,
+        status: orderData.status || OrderStatus.PENDING,
         orderItems: {
           create: orderItems.map((item) => ({
             itemId: item.itemId,

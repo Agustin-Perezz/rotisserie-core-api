@@ -1,8 +1,8 @@
-import { Order } from '@prisma/client';
+import { Order, OrderStatus } from '@prisma/client';
 
 export interface CreateOrderData {
   shopId: string;
-  status?: string;
+  status?: OrderStatus;
   orderItems: Array<{
     itemId: string;
     quantity: number;
@@ -10,7 +10,7 @@ export interface CreateOrderData {
 }
 
 export interface UpdateOrderData {
-  status?: string;
+  status?: OrderStatus;
 }
 
 export interface IOrderRepository {

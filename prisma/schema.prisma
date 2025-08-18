@@ -13,6 +13,14 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum OrderStatus {
+  PENDING
+  PREPARING
+  READY
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id        String   @id // Firebase UID
   email     String   @unique
@@ -49,20 +57,20 @@ model Item {
 }
 
 model Order {
-  id          String   @id @default(uuid())
+  id          String      @id @default(uuid())
   shopId      String
-  shop        Shop     @relation(fields: [shopId], references: [id])
-  status      String   @default("pending")
-  createdAt   DateTime @default(now())
+  shop        Shop        @relation(fields: [shopId], references: [id])
+  status      OrderStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
   deletedAt   DateTime?
   orderItems  OrderItem[]
 }
 
 model OrderItem {
-  id          String   @id @default(uuid())
-  itemId      String
-  item        Item     @relation(fields: [itemId], references: [id])
-  orderId     String
-  order       Order    @relation(fields: [orderId], references: [id])
-  quantity    Int
+  id       String @id @default(uuid())
+  itemId   String
+  item     Item   @relation(fields: [itemId], references: [id])
+  orderId  String
+  order    Order  @relation(fields: [orderId], references: [id])
+  quantity Int
 }
