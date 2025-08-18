@@ -5,6 +5,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { ItemModule } from './item/item.module';
+import { OrderModule } from './order/order.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ShopModule } from './shop/shop.module';
 import { UsersModule } from './users/users.module';
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     ShopModule,
     ItemModule,
+    OrderModule,
     FirebaseModule.forRoot({
       projectId: process.env.FIREBASE_PROJECT_ID,
     }),
