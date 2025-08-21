@@ -31,6 +31,16 @@ export class ItemRepository implements IItemRepository {
     });
   }
 
+  async findByShopName(shopName: string) {
+    return this.prisma.item.findMany({
+      where: {
+        shop: {
+          name: shopName,
+        },
+      },
+    });
+  }
+
   async update(id: string, updateItemDto: UpdateItemDto) {
     return this.prisma.item.update({
       where: { id },

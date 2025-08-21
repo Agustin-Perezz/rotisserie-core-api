@@ -35,6 +35,11 @@ export class ItemController {
     return this.itemService.findById(id);
   }
 
+  @Get('shop/:shopName')
+  findByShopName(@Param('shopName') shopName: string) {
+    return this.itemService.findByShopName(shopName);
+  }
+
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateItemDto: UpdateItemDto) {
     return this.itemService.update(id, updateItemDto);
