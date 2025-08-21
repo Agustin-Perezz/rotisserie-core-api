@@ -28,6 +28,10 @@ export class ItemService {
     return this.itemRepository.findByShopId(shopId);
   }
 
+  async findByShopName(shopName: string) {
+    return this.itemRepository.findByShopName(shopName);
+  }
+
   async update(id: string, updateItemDto: UpdateItemDto) {
     await this.findById(id);
     return this.itemRepository.update(id, updateItemDto);

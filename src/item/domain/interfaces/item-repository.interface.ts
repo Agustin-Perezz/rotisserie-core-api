@@ -10,4 +10,5 @@ export interface IItemRepository {
   update(id: string, updateItemDto: UpdateItemDto): Promise<Item>;
   delete(id: string): Promise<Item>;
   findByShopId(shopId: string): Promise<Item[]>;
+  findByShopName(shopName: string): Promise<Item[]>;
 }
