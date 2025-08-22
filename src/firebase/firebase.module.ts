@@ -1,4 +1,5 @@
 import { DynamicModule, Global, Module } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 
 import { FirebaseService } from './application/services/firebase.service';
 import { FirebaseConfig } from './infrastructure/config/firebase-config.interface';
@@ -15,7 +16,15 @@ export class FirebaseModule {
       providers: [
         {
           provide: 'FIREBASE_CONFIG',
-          useValue: config || {},
+          useFactory: (configService: ConfigService) => {
+            return (
+              config || {
+                projectId:
+                  configService.get<string>('firebase.projectId') || '',
+              }
+            );
+          },
+          inject: [ConfigService],
         },
         FirebaseService,
       ],

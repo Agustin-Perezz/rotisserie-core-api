@@ -1,4 +1,7 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+
+import { environmentConfig } from '@config/environmnetConfig';
 
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -12,15 +15,17 @@ import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [environmentConfig],
+      isGlobal: true,
+    }),
     PrismaModule,
     UsersModule,
     AuthModule,
     ShopModule,
     ItemModule,
     OrderModule,
-    FirebaseModule.forRoot({
-      projectId: process.env.FIREBASE_PROJECT_ID,
-    }),
+    FirebaseModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [AppService],
