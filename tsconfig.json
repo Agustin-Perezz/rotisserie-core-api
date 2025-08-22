@@ -23,6 +23,7 @@
       "@users/*": ["users/*"],
       "@common/*": ["common/*"],
       "@app/*": ["app/*"],
+      "@config/*": ["config/*"],
       "@/*": ["*"],
       "@root/*": ["../*"]
     }
