@@ -8,6 +8,7 @@ import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { ItemModule } from './item/item.module';
+import { MpModule } from './mp/mp.module';
 import { OrderModule } from './order/order.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { ShopModule } from './shop/shop.module';
@@ -25,6 +26,7 @@ import { UsersModule } from './users/users.module';
     ShopModule,
     ItemModule,
     OrderModule,
+    MpModule,
     FirebaseModule.forRoot(),
   ],
   controllers: [AppController],
