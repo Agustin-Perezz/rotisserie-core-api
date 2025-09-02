@@ -28,6 +28,22 @@ model User {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   shops     Shop[]
+  paymentAccounts PaymentAccount[]
+}
+
+model PaymentAccount {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  provider     String
+  mpUserId     Int?
+  accessToken  String
+  refreshToken String
+  expiresIn    BigInt
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([userId, provider])
 }
 
 model Shop {
