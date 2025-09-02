@@ -1,15 +1,11 @@
 import { AuthServiceInterface } from '@auth/domain/interfaces/auth-service.interface';
 import { AuthCredentials } from '@auth/domain/interfaces/types/auth-credentials';
-import { ConflictException, Inject, Injectable } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { ConflictException, Injectable } from '@nestjs/common';
 import { UsersService } from '@users/application/services/users.service';
 
 @Injectable()
 export class AuthService implements AuthServiceInterface {
-  constructor(
-    public usersService: UsersService,
-    @Inject(ConfigService) private readonly configService: ConfigService,
-  ) {}
+  constructor(public usersService: UsersService) {}
 
   async signUp(credentials: AuthCredentials): Promise<void> {
     const user = await this.usersService.findOne(credentials.firebaseUid);
