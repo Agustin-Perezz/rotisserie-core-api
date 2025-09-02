@@ -24,6 +24,8 @@
       "@common/*": ["common/*"],
       "@app/*": ["app/*"],
       "@config/*": ["config/*"],
+      "@prisma/*": ["prisma/*"],
+      "@mp/*": ["mp/*"],
       "@/*": ["*"],
       "@root/*": ["../*"]
     }
