@@ -1,7 +1,9 @@
 export const environmentConfig = () => ({
   mercadoPago: {
+    mpApi: process.env.MP_API,
     authApi: process.env.MP_AUTH_API,
     clientId: process.env.MP_CLIENT_ID,
+    clientSecret: process.env.MP_CLIENT_SECRET,
     redirectUri: process.env.MP_REDIRECT_URI,
   },
   firebase: {

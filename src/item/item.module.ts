@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 
-import { PrismaModule } from '../prisma/prisma.module';
+import { PrismaModule } from '@/prisma/prisma.module';
+
 import { ItemService } from './application/services/item.service';
 import { ItemController } from './infrastructure/controllers/item.controller';
 import { ItemRepository } from './infrastructure/persistence/item.repository';
