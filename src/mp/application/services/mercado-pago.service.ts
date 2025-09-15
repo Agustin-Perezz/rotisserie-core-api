@@ -91,7 +91,13 @@ export class MercadoPagoService {
       });
 
       return data;
-    } catch {
+    } catch (error) {
+      if (error instanceof BadRequestException) {
+        throw error;
+      }
+      if (error instanceof Error) {
+        throw new BadRequestException(error.message);
+      }
       throw new BadRequestException('Failed to exchange code for token');
     }
   }
