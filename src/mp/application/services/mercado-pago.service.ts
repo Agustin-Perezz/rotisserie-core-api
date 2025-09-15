@@ -14,11 +14,9 @@ export class MercadoPagoService {
   ) {}
 
   generateLoginUrl(sellerId?: string): { url: string; codeVerifier: string } {
-    const authApi = this.configService.get<string>('mercadoPago.authApi') || '';
-    const clientId =
-      this.configService.get<string>('mercadoPago.clientId') || '';
-    const redirectUri =
-      this.configService.get<string>('mercadoPago.redirectUri') || '';
+    const authApi = this.configService.get('mercadoPago.authApi') || '';
+    const clientId = this.configService.get('mercadoPago.clientId') || '';
+    const redirectUri = this.configService.get('mercadoPago.redirectUri') || '';
 
     const state = sellerId || 'default';
     const codeVerifier = PkceUtils.generateCodeVerifier();
@@ -70,12 +68,6 @@ export class MercadoPagoService {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error('MercadoPago API error:', {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        });
         throw new BadRequestException(
           `MercadoPago API error: ${response.status} ${response.statusText}`,
         );
@@ -99,10 +91,7 @@ export class MercadoPagoService {
       });
 
       return data;
-    } catch (error) {
-      if (error instanceof Error) {
-        throw error;
-      }
+    } catch {
       throw new BadRequestException('Failed to exchange code for token');
     }
   }
