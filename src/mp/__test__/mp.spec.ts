@@ -135,24 +135,24 @@ describe('MpController E2E', () => {
       });
     });
 
-    it('should return 500 when state format is invalid', async () => {
+    it('should return 404 when state format is invalid', async () => {
       const code = 'test-auth-code-101';
       const invalidState = 'invalid-state-format';
 
       await request(app.getHttpServer())
         .get('/mp/callback')
         .query({ code, state: invalidState })
-        .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+        .expect(HttpStatus.BAD_REQUEST);
     });
 
-    it('should return 500 when state is missing code verifier', async () => {
+    it('should return 404 when state is missing code verifier', async () => {
       const code = 'test-auth-code-202';
       const state = encodeURIComponent('user-without-verifier');
 
       await request(app.getHttpServer())
         .get('/mp/callback')
         .query({ code, state })
-        .expect(HttpStatus.INTERNAL_SERVER_ERROR);
+        .expect(HttpStatus.BAD_REQUEST);
     });
 
     it('should handle MercadoPago API errors gracefully', async () => {

@@ -1,5 +1,5 @@
 import { MercadoPagoService } from '@mp/application/services/mercado-pago.service';
-import { Controller, Get, Query } from '@nestjs/common';
+import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
 
 @Controller('mp')
 export class MpController {
@@ -25,7 +25,9 @@ export class MpController {
     const [userId, codeVerifier] = decodeURIComponent(state).split(':');
 
     if (!codeVerifier) {
-      throw new Error('Invalid state parameter: missing code verifier');
+      throw new BadRequestException(
+        'Invalid state parameter: missing code verifier',
+      );
     }
 
     const data = await this.mercadoPagoService.exchangeCodeForToken(
