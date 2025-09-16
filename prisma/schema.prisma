@@ -36,7 +36,7 @@ model PaymentAccount {
   userId       String
   user         User     @relation(fields: [userId], references: [id])
   provider     String
-  mpUserId     Int?
+  mpUserId     BigInt?
   accessToken  String
   refreshToken String
   expiresIn    BigInt
