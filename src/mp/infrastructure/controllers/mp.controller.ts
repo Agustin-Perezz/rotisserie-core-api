@@ -1,5 +1,13 @@
+import { CreatePreferenceDto } from '@mp/application/dto/create-preference.dto';
 import { MercadoPagoService } from '@mp/application/services/mercado-pago.service';
-import { BadRequestException, Controller, Get, Query } from '@nestjs/common';
+import {
+  BadRequestException,
+  Body,
+  Controller,
+  Get,
+  Post,
+  Query,
+} from '@nestjs/common';
 
 @Controller('mp')
 export class MpController {
@@ -40,5 +48,10 @@ export class MpController {
       message: `User ${userId} connected to Mercado Pago`,
       data,
     };
+  }
+
+  @Post('preference')
+  async createPreference(@Body() body: CreatePreferenceDto) {
+    return await this.mercadoPagoService.createPreference(body);
   }
 }
