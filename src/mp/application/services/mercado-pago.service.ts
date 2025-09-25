@@ -1,6 +1,8 @@
+import { CreatePreferenceDto } from '@mp/application/dto/create-preference.dto';
 import { MercadoPagoTokenResponse } from '@mp/domain/interfaces/mercado-pago.interface';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { MercadoPagoConfig, Preference } from 'mercadopago';
 
 import { PaymentAccountService } from '@/payment-account/application/services/payment-account.service';
 
@@ -11,7 +13,38 @@ export class MercadoPagoService {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly paymentAccountService: PaymentAccountService,
-  ) {}
+  ) {
+    this.mpClient = new MercadoPagoConfig({
+      accessToken: this.configService.get('mercadoPago.accessToken') || '',
+    });
+  }
+
+  private mpClient: MercadoPagoConfig;
+
+  async createPreference(
+    payload: CreatePreferenceDto,
+  ): Promise<{ preferenceId: string }> {
+    try {
+      const preferenceClient = new Preference(this.mpClient);
+      const response = await preferenceClient.create({
+        body: {
+          purpose: payload.purpose,
+          items: payload.items,
+          back_urls: payload.back_urls,
+          external_reference: payload.external_reference,
+          metadata: payload.metadata,
+          binary_mode: true,
+        },
+      });
+
+      return { preferenceId: response?.id || '' };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(error.message);
+      }
+      throw new BadRequestException('Failed to create Mercado Pago preference');
+    }
+  }
 
   generateLoginUrl(sellerId?: string): { url: string; codeVerifier: string } {
     const authApi = this.configService.get('mercadoPago.authApi') || '';
@@ -34,14 +67,10 @@ export class MercadoPagoService {
     userId: string,
     codeVerifier: string,
   ) {
-    const mpApi = this.configService.get<string>('mercadoPago.mpApi') || '';
-    const clientSecret = this.configService.get<string>(
-      'mercadoPago.clientSecret',
-    );
-    const clientId = this.configService.get<string>('mercadoPago.clientId');
-    const redirectUri = this.configService.get<string>(
-      'mercadoPago.redirectUri',
-    );
+    const mpApi = this.configService.get('mercadoPago.mpApi') || '';
+    const clientSecret = this.configService.get('mercadoPago.clientSecret');
+    const clientId = this.configService.get('mercadoPago.clientId');
+    const redirectUri = this.configService.get('mercadoPago.redirectUri');
 
     if (!mpApi || !clientSecret || !clientId || !redirectUri) {
       throw new BadRequestException(
