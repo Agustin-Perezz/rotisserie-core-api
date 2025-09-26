@@ -1,4 +1,5 @@
 import { CreatePreferenceDto } from '@mp/application/dto/create-preference.dto';
+import { ProcessPaymentDto } from '@mp/application/dto/process-payment.dto';
 import { MercadoPagoService } from '@mp/application/services/mercado-pago.service';
 import {
   BadRequestException,
@@ -53,5 +54,10 @@ export class MpController {
   @Post('preference')
   async createPreference(@Body() body: CreatePreferenceDto) {
     return await this.mercadoPagoService.createPreference(body);
+  }
+
+  @Post('process_payment')
+  async processPayment(@Body() body: ProcessPaymentDto) {
+    return await this.mercadoPagoService.processPayment(body);
   }
 }

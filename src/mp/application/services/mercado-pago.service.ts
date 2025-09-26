@@ -1,8 +1,9 @@
 import { CreatePreferenceDto } from '@mp/application/dto/create-preference.dto';
+import { ProcessPaymentDto } from '@mp/application/dto/process-payment.dto';
 import { MercadoPagoTokenResponse } from '@mp/domain/interfaces/mercado-pago.interface';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { MercadoPagoConfig, Preference } from 'mercadopago';
+import { MercadoPagoConfig, Payment, Preference } from 'mercadopago';
 
 import { PaymentAccountService } from '@/payment-account/application/services/payment-account.service';
 
@@ -43,6 +44,38 @@ export class MercadoPagoService {
         throw new BadRequestException(error.message);
       }
       throw new BadRequestException('Failed to create Mercado Pago preference');
+    }
+  }
+
+  async processPayment(payload: ProcessPaymentDto) {
+    try {
+      const paymentClient = new Payment(this.mpClient);
+      const { formData } = payload;
+
+      const response = await paymentClient.create({
+        body: {
+          transaction_amount: formData.transaction_amount,
+          token: formData.token,
+          description: 'Payment processed via Payment Brick',
+          installments: formData.installments,
+          payment_method_id: formData.payment_method_id,
+          issuer_id: parseInt(formData.issuer_id, 10),
+          payer: {
+            email: formData.payer.email,
+            identification: {
+              type: formData.payer.identification.type,
+              number: formData.payer.identification.number,
+            },
+          },
+        },
+      });
+
+      return response;
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(error.message);
+      }
+      throw new BadRequestException('Failed to process payment');
     }
   }
 
