@@ -14,19 +14,17 @@ export class MercadoPagoService {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly paymentAccountService: PaymentAccountService,
-  ) {
-    this.mpClient = new MercadoPagoConfig({
-      accessToken: this.configService.get('mercadoPago.accessToken') || '',
-    });
-  }
-
-  private mpClient: MercadoPagoConfig;
+  ) {}
 
   async createPreference(
     payload: CreatePreferenceDto,
+    ownerId: string,
   ): Promise<{ preferenceId: string }> {
     try {
-      const preferenceClient = new Preference(this.mpClient);
+      const accessToken = await this.getSellerAccessToken(ownerId);
+      const mpClient = this.createMercadoPagoClient(accessToken);
+      const preferenceClient = new Preference(mpClient);
+
       const response = await preferenceClient.create({
         body: {
           purpose: payload.purpose,
@@ -47,9 +45,12 @@ export class MercadoPagoService {
     }
   }
 
-  async processPayment(payload: ProcessPaymentDto) {
+  async processPayment(payload: ProcessPaymentDto, ownerId: string) {
     try {
-      const paymentClient = new Payment(this.mpClient);
+      const accessToken = await this.getSellerAccessToken(ownerId);
+      const mpClient = this.createMercadoPagoClient(accessToken);
+
+      const paymentClient = new Payment(mpClient);
       const { formData } = payload;
 
       const response = await paymentClient.create({
@@ -159,5 +160,27 @@ export class MercadoPagoService {
       }
       throw new BadRequestException('Failed to exchange code for token');
     }
+  }
+
+  private async getSellerAccessToken(ownerId: string): Promise<string> {
+    const paymentAccount =
+      await this.paymentAccountService.findByUserIdAndProvider(
+        ownerId,
+        'mercadopago',
+      );
+
+    if (!paymentAccount || !paymentAccount.accessToken) {
+      throw new BadRequestException(
+        'No MercadoPago payment account found for this user',
+      );
+    }
+
+    return paymentAccount.accessToken;
+  }
+
+  private createMercadoPagoClient(accessToken: string): MercadoPagoConfig {
+    return new MercadoPagoConfig({
+      accessToken,
+    });
   }
 }

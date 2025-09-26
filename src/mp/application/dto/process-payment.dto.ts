@@ -62,6 +62,10 @@ export class PaymentFormDataDto {
 
 export class ProcessPaymentDto {
   @IsNotEmpty()
+  @IsString()
+  ownerId: string;
+
+  @IsNotEmpty()
   @ValidateNested()
   @Type(() => PaymentFormDataDto)
   formData: PaymentFormDataDto;

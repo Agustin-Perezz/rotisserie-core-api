@@ -55,6 +55,10 @@ export class BackUrlsDto {
 }
 
 export class CreatePreferenceDto {
+  @IsNotEmpty()
+  @IsString()
+  ownerId: string;
+
   @IsOptional()
   @IsIn(['wallet_purchase', 'onboarding_credits'])
   purpose?: 'wallet_purchase' | 'onboarding_credits';

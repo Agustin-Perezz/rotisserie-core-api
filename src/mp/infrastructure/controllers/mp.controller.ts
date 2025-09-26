@@ -53,11 +53,11 @@ export class MpController {
 
   @Post('preference')
   async createPreference(@Body() body: CreatePreferenceDto) {
-    return await this.mercadoPagoService.createPreference(body);
+    return await this.mercadoPagoService.createPreference(body, body.ownerId);
   }
 
   @Post('process_payment')
   async processPayment(@Body() body: ProcessPaymentDto) {
-    return await this.mercadoPagoService.processPayment(body);
+    return await this.mercadoPagoService.processPayment(body, body.ownerId);
   }
 }
