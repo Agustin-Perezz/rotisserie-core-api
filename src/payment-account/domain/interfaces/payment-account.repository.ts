@@ -10,6 +10,7 @@ export interface IPaymentAccountRepository {
     accessToken: string;
     refreshToken: string;
     expiresIn: bigint;
+    publicKey?: string;
   }): Promise<PaymentAccount>;
 
   findByUserIdAndProvider(

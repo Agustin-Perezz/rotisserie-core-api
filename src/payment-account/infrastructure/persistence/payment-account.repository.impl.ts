@@ -16,6 +16,7 @@ export class PaymentAccountRepository implements IPaymentAccountRepository {
     accessToken: string;
     refreshToken: string;
     expiresIn: bigint;
+    publicKey?: string;
   }): Promise<PaymentAccount> {
     return this.prisma.paymentAccount.upsert({
       where: {
@@ -29,6 +30,7 @@ export class PaymentAccountRepository implements IPaymentAccountRepository {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
         expiresIn: data.expiresIn,
+        publicKey: data.publicKey,
       },
       create: {
         userId: data.userId,
@@ -37,6 +39,7 @@ export class PaymentAccountRepository implements IPaymentAccountRepository {
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
         expiresIn: data.expiresIn,
+        publicKey: data.publicKey,
       },
     });
   }

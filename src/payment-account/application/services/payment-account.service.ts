@@ -16,6 +16,7 @@ export class PaymentAccountService {
     accessToken: string;
     refreshToken: string;
     expiresIn: bigint;
+    publicKey?: string;
   }): Promise<PaymentAccount> {
     return this.paymentAccountRepository.upsertPaymentAccount(data);
   }
