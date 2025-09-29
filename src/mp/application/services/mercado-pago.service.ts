@@ -18,10 +18,10 @@ export class MercadoPagoService {
 
   async createPreference(
     payload: CreatePreferenceDto,
-    ownerId: string,
+    sellerId: string,
   ): Promise<{ preferenceId: string }> {
     try {
-      const accessToken = await this.getSellerAccessToken(ownerId);
+      const accessToken = await this.getSellerAccessToken(sellerId);
       const mpClient = this.createMercadoPagoClient(accessToken);
       const preferenceClient = new Preference(mpClient);
 
@@ -45,9 +45,9 @@ export class MercadoPagoService {
     }
   }
 
-  async processPayment(payload: ProcessPaymentDto, ownerId: string) {
+  async processPayment(payload: ProcessPaymentDto, sellerId: string) {
     try {
-      const accessToken = await this.getSellerAccessToken(ownerId);
+      const accessToken = await this.getSellerAccessToken(sellerId);
       const mpClient = this.createMercadoPagoClient(accessToken);
 
       const paymentClient = new Payment(mpClient);
@@ -163,10 +163,10 @@ export class MercadoPagoService {
     }
   }
 
-  async getSellerPublicKey(ownerId: string): Promise<string | null> {
+  async getSellerPublicKey(sellerId: string): Promise<string | null> {
     const paymentAccount =
       await this.paymentAccountService.findByUserIdAndProvider(
-        ownerId,
+        sellerId,
         'mercadopago',
       );
 
@@ -179,10 +179,10 @@ export class MercadoPagoService {
     return paymentAccount.publicKey || null;
   }
 
-  private async getSellerAccessToken(ownerId: string): Promise<string> {
+  private async getSellerAccessToken(sellerId: string): Promise<string> {
     const paymentAccount =
       await this.paymentAccountService.findByUserIdAndProvider(
-        ownerId,
+        sellerId,
         'mercadopago',
       );
 
