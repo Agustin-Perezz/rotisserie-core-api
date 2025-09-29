@@ -6,6 +6,7 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   Post,
   Query,
 } from '@nestjs/common';
@@ -49,6 +50,12 @@ export class MpController {
       message: `User ${userId} connected to Mercado Pago`,
       data,
     };
+  }
+
+  @Get('public-key/:ownerId')
+  async getSellerPublicKey(@Param('ownerId') ownerId: string) {
+    const publicKey = await this.mercadoPagoService.getSellerPublicKey(ownerId);
+    return { publicKey };
   }
 
   @Post('preference')

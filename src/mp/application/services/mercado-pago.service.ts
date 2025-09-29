@@ -151,6 +151,7 @@ export class MercadoPagoService {
         accessToken: data.access_token,
         refreshToken: data.refresh_token,
         expiresIn: BigInt(data.expires_in),
+        publicKey: data.public_key,
       });
 
       return data;
@@ -160,6 +161,22 @@ export class MercadoPagoService {
       }
       throw new BadRequestException('Failed to exchange code for token');
     }
+  }
+
+  async getSellerPublicKey(ownerId: string): Promise<string | null> {
+    const paymentAccount =
+      await this.paymentAccountService.findByUserIdAndProvider(
+        ownerId,
+        'mercadopago',
+      );
+
+    if (!paymentAccount) {
+      throw new BadRequestException(
+        'No MercadoPago payment account found for this user',
+      );
+    }
+
+    return paymentAccount.publicKey || null;
   }
 
   private async getSellerAccessToken(ownerId: string): Promise<string> {
