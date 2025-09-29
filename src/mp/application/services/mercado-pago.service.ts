@@ -18,10 +18,10 @@ export class MercadoPagoService {
 
   async createPreference(
     payload: CreatePreferenceDto,
-    ownerId: string,
+    sellerId: string,
   ): Promise<{ preferenceId: string }> {
     try {
-      const accessToken = await this.getSellerAccessToken(ownerId);
+      const accessToken = await this.getSellerAccessToken(sellerId);
       const mpClient = this.createMercadoPagoClient(accessToken);
       const preferenceClient = new Preference(mpClient);
 
@@ -45,9 +45,9 @@ export class MercadoPagoService {
     }
   }
 
-  async processPayment(payload: ProcessPaymentDto, ownerId: string) {
+  async processPayment(payload: ProcessPaymentDto, sellerId: string) {
     try {
-      const accessToken = await this.getSellerAccessToken(ownerId);
+      const accessToken = await this.getSellerAccessToken(sellerId);
       const mpClient = this.createMercadoPagoClient(accessToken);
 
       const paymentClient = new Payment(mpClient);
@@ -163,36 +163,22 @@ export class MercadoPagoService {
     }
   }
 
-  async getSellerPublicKey(ownerId: string): Promise<string | null> {
-    const paymentAccount =
-      await this.paymentAccountService.findByUserIdAndProvider(
-        ownerId,
-        'mercadopago',
-      );
+  async getSellerPublicKey(sellerId: string): Promise<string | null> {
+    const seller = await this.paymentAccountService.findByUserIdAndProvider(
+      sellerId,
+      'mercadopago',
+    );
 
-    if (!paymentAccount) {
-      throw new BadRequestException(
-        'No MercadoPago payment account found for this user',
-      );
-    }
-
-    return paymentAccount.publicKey || null;
+    return seller.publicKey;
   }
 
-  private async getSellerAccessToken(ownerId: string): Promise<string> {
-    const paymentAccount =
-      await this.paymentAccountService.findByUserIdAndProvider(
-        ownerId,
-        'mercadopago',
-      );
+  private async getSellerAccessToken(sellerId: string): Promise<string> {
+    const seller = await this.paymentAccountService.findByUserIdAndProvider(
+      sellerId,
+      'mercadopago',
+    );
 
-    if (!paymentAccount || !paymentAccount.accessToken) {
-      throw new BadRequestException(
-        'No MercadoPago payment account found for this user',
-      );
-    }
-
-    return paymentAccount.accessToken;
+    return seller.accessToken;
   }
 
   private createMercadoPagoClient(accessToken: string): MercadoPagoConfig {
