@@ -164,35 +164,21 @@ export class MercadoPagoService {
   }
 
   async getSellerPublicKey(sellerId: string): Promise<string | null> {
-    const paymentAccount =
-      await this.paymentAccountService.findByUserIdAndProvider(
-        sellerId,
-        'mercadopago',
-      );
+    const seller = await this.paymentAccountService.findByUserIdAndProvider(
+      sellerId,
+      'mercadopago',
+    );
 
-    if (!paymentAccount) {
-      throw new BadRequestException(
-        'No MercadoPago payment account found for this user',
-      );
-    }
-
-    return paymentAccount.publicKey || null;
+    return seller.publicKey;
   }
 
   private async getSellerAccessToken(sellerId: string): Promise<string> {
-    const paymentAccount =
-      await this.paymentAccountService.findByUserIdAndProvider(
-        sellerId,
-        'mercadopago',
-      );
+    const seller = await this.paymentAccountService.findByUserIdAndProvider(
+      sellerId,
+      'mercadopago',
+    );
 
-    if (!paymentAccount || !paymentAccount.accessToken) {
-      throw new BadRequestException(
-        'No MercadoPago payment account found for this user',
-      );
-    }
-
-    return paymentAccount.accessToken;
+    return seller.accessToken;
   }
 
   private createMercadoPagoClient(accessToken: string): MercadoPagoConfig {
