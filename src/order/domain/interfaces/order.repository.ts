@@ -1,4 +1,4 @@
-import { Order, OrderStatus } from '@prisma/client';
+import { Item, Order, OrderItem, OrderStatus, Shop } from '@prisma/client';
 
 export interface CreateOrderData {
   shopId: string;
@@ -13,11 +13,18 @@ export interface UpdateOrderData {
   status?: OrderStatus;
 }
 
+export type OrderWithRelations = Order & {
+  orderItems: (OrderItem & {
+    item: Item;
+  })[];
+  shop: Shop;
+};
+
 export interface IOrderRepository {
-  create(data: CreateOrderData): Promise<Order>;
-  findAll(): Promise<Order[]>;
-  findById(id: string): Promise<Order | null>;
-  findByShopId(shopId: string): Promise<Order[]>;
-  update(id: string, data: UpdateOrderData): Promise<Order>;
-  delete(id: string): Promise<Order>;
+  create(data: CreateOrderData): Promise<OrderWithRelations>;
+  findAll(): Promise<OrderWithRelations[]>;
+  findById(id: string): Promise<OrderWithRelations | null>;
+  findByShopId(shopId: string): Promise<OrderWithRelations[]>;
+  update(id: string, data: UpdateOrderData): Promise<OrderWithRelations>;
+  delete(id: string): Promise<OrderWithRelations>;
 }
