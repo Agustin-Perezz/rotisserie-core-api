@@ -1,6 +1,5 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray,
   IsIn,
   IsNotEmpty,
   IsNumber,
@@ -59,14 +58,13 @@ export class CreatePreferenceDto {
   @IsString()
   ownerId: string;
 
+  @IsNotEmpty()
+  @IsString()
+  orderId: string;
+
   @IsOptional()
   @IsIn(['wallet_purchase', 'onboarding_credits'])
   purpose?: 'wallet_purchase' | 'onboarding_credits';
-
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => PreferenceItemDto)
-  items: PreferenceItemDto[];
 
   @IsOptional()
   @ValidateNested()

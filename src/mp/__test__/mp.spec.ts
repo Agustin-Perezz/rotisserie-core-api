@@ -13,6 +13,10 @@ const mockPaymentAccountService = {
   findByUserIdAndProvider: jest.fn(),
 };
 
+const mockOrderService = {
+  findById: jest.fn(),
+};
+
 const mockPreferenceCreate = jest.fn();
 const mockPaymentCreate = jest.fn();
 
@@ -35,6 +39,18 @@ jest.mock(
   }),
 );
 
+jest.mock('@/order/application/services/order.service', () => ({
+  OrderService: jest.fn().mockImplementation(() => mockOrderService),
+}));
+
+const mockMapOrderItemsToMpItems = jest.fn();
+
+jest.mock('@mp/application/mappers/order-to-mp-items.mapper', () => ({
+  OrderToMpItemsMapper: {
+    mapOrderItemsToMpItems: mockMapOrderItemsToMpItems,
+  },
+}));
+
 describe('MpController E2E', () => {
   let app: INestApplication;
   const prisma = new PrismaClient();
@@ -45,6 +61,8 @@ describe('MpController E2E', () => {
     })
       .overrideProvider('PaymentAccountService')
       .useValue(mockPaymentAccountService)
+      .overrideProvider('OrderService')
+      .useValue(mockOrderService)
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -56,6 +74,8 @@ describe('MpController E2E', () => {
     mockFetch.mockClear();
     mockPreferenceCreate.mockClear();
     mockPaymentCreate.mockClear();
+    mockOrderService.findById.mockClear();
+    mockMapOrderItemsToMpItems.mockClear();
   });
 
   afterAll(async () => {
@@ -224,29 +244,47 @@ describe('MpController E2E', () => {
         userId: 'test-owner-123',
         provider: 'mercadopago',
       });
+
+      const mockOrder = {
+        id: 'order-123',
+        shopId: 'shop-123',
+        orderItems: [
+          {
+            item: {
+              id: 'item-1',
+              name: 'Test Product',
+              price: 100.5,
+              description: 'Test product description',
+              image: 'test-image.jpg',
+            },
+            quantity: 1,
+          },
+        ],
+      };
+
+      mockOrderService.findById.mockResolvedValue(mockOrder);
+      mockMapOrderItemsToMpItems.mockReturnValue([
+        {
+          id: 'item-1',
+          title: 'Test Product',
+          quantity: 1,
+          unit_price: 100.5,
+        },
+      ]);
     });
 
     it('should create preference successfully with valid data', async () => {
       const preferenceData = {
         ownerId: 'test-owner-123',
+        orderId: 'order-123',
         purpose: 'wallet_purchase',
-        items: [
-          {
-            id: 'item-1',
-            title: 'Test Product',
-            quantity: 1,
-            unit_price: 100.5,
-            currency_id: 'ARS',
-            description: 'Test product description',
-          },
-        ],
         back_urls: {
           success: 'https://example.com/success',
           failure: 'https://example.com/failure',
           pending: 'https://example.com/pending',
         },
         external_reference: 'ref-123',
-        metadata: { order_id: '12345' },
+        metadata: { custom_data: 'test' },
       };
 
       const mockPreferenceResponse = {
@@ -263,6 +301,8 @@ describe('MpController E2E', () => {
           expect(res.body.preferenceId).toBe('preference-id-123');
         });
 
+      expect(mockOrderService.findById).toHaveBeenCalledWith('order-123');
+      expect(mockMapOrderItemsToMpItems).toHaveBeenCalled();
       expect(
         mockPaymentAccountService.findByUserIdAndProvider,
       ).toHaveBeenCalledWith('test-owner-123', 'mercadopago');
@@ -275,8 +315,6 @@ describe('MpController E2E', () => {
               title: 'Test Product',
               quantity: 1,
               unit_price: 100.5,
-              currency_id: 'ARS',
-              description: 'Test product description',
             },
           ],
           back_urls: {
@@ -285,7 +323,11 @@ describe('MpController E2E', () => {
             pending: 'https://example.com/pending',
           },
           external_reference: 'ref-123',
-          metadata: { order_id: '12345' },
+          metadata: {
+            custom_data: 'test',
+            orderId: 'order-123',
+            shopId: 'shop-123',
+          },
           binary_mode: true,
         },
       });
@@ -296,14 +338,7 @@ describe('MpController E2E', () => {
 
       const preferenceData = {
         ownerId: 'no-account-owner',
-        items: [
-          {
-            id: 'item-1',
-            title: 'Test Product',
-            quantity: 1,
-            unit_price: 100,
-          },
-        ],
+        orderId: 'order-123',
       };
 
       await request(app.getHttpServer())
@@ -315,14 +350,7 @@ describe('MpController E2E', () => {
     it('should return 400 when MercadoPago API fails', async () => {
       const preferenceData = {
         ownerId: 'test-owner-error',
-        items: [
-          {
-            id: 'item-1',
-            title: 'Test Product',
-            quantity: 1,
-            unit_price: 100,
-          },
-        ],
+        orderId: 'order-error',
       };
 
       mockPreferenceCreate.mockRejectedValueOnce(
@@ -338,14 +366,7 @@ describe('MpController E2E', () => {
     it('should create preference with minimal required data', async () => {
       const minimalData = {
         ownerId: 'test-owner-minimal',
-        items: [
-          {
-            id: 'item-1',
-            title: 'Minimal Product',
-            quantity: 1,
-            unit_price: 50,
-          },
-        ],
+        orderId: 'order-minimal',
       };
 
       const mockResponse = { id: 'minimal-preference-id' };
@@ -358,6 +379,9 @@ describe('MpController E2E', () => {
         .expect((res) => {
           expect(res.body.preferenceId).toBe('minimal-preference-id');
         });
+
+      expect(mockOrderService.findById).toHaveBeenCalledWith('order-minimal');
+      expect(mockMapOrderItemsToMpItems).toHaveBeenCalled();
     });
   });
 
