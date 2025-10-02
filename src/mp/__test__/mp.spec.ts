@@ -43,14 +43,6 @@ jest.mock('@/order/application/services/order.service', () => ({
   OrderService: jest.fn().mockImplementation(() => mockOrderService),
 }));
 
-const mockMapOrderItemsToMpItems = jest.fn();
-
-jest.mock('@mp/application/mappers/order-to-mp-items.mapper', () => ({
-  OrderToMpItemsMapper: {
-    mapOrderItemsToMpItems: mockMapOrderItemsToMpItems,
-  },
-}));
-
 describe('MpController E2E', () => {
   let app: INestApplication;
   const prisma = new PrismaClient();
@@ -75,7 +67,6 @@ describe('MpController E2E', () => {
     mockPreferenceCreate.mockClear();
     mockPaymentCreate.mockClear();
     mockOrderService.findById.mockClear();
-    mockMapOrderItemsToMpItems.mockClear();
   });
 
   afterAll(async () => {
@@ -263,14 +254,6 @@ describe('MpController E2E', () => {
       };
 
       mockOrderService.findById.mockResolvedValue(mockOrder);
-      mockMapOrderItemsToMpItems.mockReturnValue([
-        {
-          id: 'item-1',
-          title: 'Test Product',
-          quantity: 1,
-          unit_price: 100.5,
-        },
-      ]);
     });
 
     it('should create preference successfully with valid data', async () => {
@@ -302,7 +285,6 @@ describe('MpController E2E', () => {
         });
 
       expect(mockOrderService.findById).toHaveBeenCalledWith('order-123');
-      expect(mockMapOrderItemsToMpItems).toHaveBeenCalled();
       expect(
         mockPaymentAccountService.findByUserIdAndProvider,
       ).toHaveBeenCalledWith('test-owner-123', 'mercadopago');
@@ -381,7 +363,6 @@ describe('MpController E2E', () => {
         });
 
       expect(mockOrderService.findById).toHaveBeenCalledWith('order-minimal');
-      expect(mockMapOrderItemsToMpItems).toHaveBeenCalled();
     });
   });
 
