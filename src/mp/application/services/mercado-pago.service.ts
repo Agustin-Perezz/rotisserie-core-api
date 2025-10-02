@@ -1,10 +1,12 @@
 import { CreatePreferenceDto } from '@mp/application/dto/create-preference.dto';
 import { ProcessPaymentDto } from '@mp/application/dto/process-payment.dto';
+import { OrderToMpItemsMapper } from '@mp/application/mappers/order-to-mp-items.mapper';
 import { MercadoPagoTokenResponse } from '@mp/domain/interfaces/mercado-pago.interface';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MercadoPagoConfig, Payment, Preference } from 'mercadopago';
 
+import { OrderService } from '@/order/application/services/order.service';
 import { PaymentAccountService } from '@/payment-account/application/services/payment-account.service';
 
 import { PkceUtils } from './pkce.utils';
@@ -14,6 +16,7 @@ export class MercadoPagoService {
   constructor(
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly paymentAccountService: PaymentAccountService,
+    private readonly orderService: OrderService,
   ) {}
 
   async createPreference(
@@ -25,13 +28,20 @@ export class MercadoPagoService {
       const mpClient = this.createMercadoPagoClient(accessToken);
       const preferenceClient = new Preference(mpClient);
 
+      const order = await this.orderService.findById(payload.orderId);
+      const items = OrderToMpItemsMapper.mapOrderItemsToMpItems(order);
+
       const response = await preferenceClient.create({
         body: {
           purpose: payload.purpose,
-          items: payload.items,
+          items,
           back_urls: payload.back_urls,
-          external_reference: payload.external_reference,
-          metadata: payload.metadata,
+          external_reference: payload.external_reference || order.id,
+          metadata: {
+            ...payload.metadata,
+            orderId: order.id,
+            shopId: order.shopId,
+          },
           binary_mode: true,
         },
       });

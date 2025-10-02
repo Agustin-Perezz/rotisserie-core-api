@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { Order, OrderStatus } from '@prisma/client';
+import { OrderStatus } from '@prisma/client';
 
 import { PrismaService } from '@/prisma/prisma.service';
 
 import {
   CreateOrderData,
   IOrderRepository,
+  OrderWithRelations,
   UpdateOrderData,
 } from '../../domain/interfaces/order.repository';
 
@@ -13,7 +14,7 @@ import {
 export class OrderRepository implements IOrderRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateOrderData): Promise<Order> {
+  async create(data: CreateOrderData): Promise<OrderWithRelations> {
     const { orderItems, ...orderData } = data;
 
     return this.prisma.order.create({
@@ -38,7 +39,7 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
-  async findAll(): Promise<Order[]> {
+  async findAll(): Promise<OrderWithRelations[]> {
     return this.prisma.order.findMany({
       where: {
         deletedAt: null,
@@ -54,7 +55,7 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
-  async findById(id: string): Promise<Order | null> {
+  async findById(id: string): Promise<OrderWithRelations | null> {
     return this.prisma.order.findFirst({
       where: {
         id,
@@ -71,7 +72,7 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
-  async findByShopId(shopId: string): Promise<Order[]> {
+  async findByShopId(shopId: string): Promise<OrderWithRelations[]> {
     return this.prisma.order.findMany({
       where: {
         shopId,
@@ -88,7 +89,7 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
-  async update(id: string, data: UpdateOrderData): Promise<Order> {
+  async update(id: string, data: UpdateOrderData): Promise<OrderWithRelations> {
     return this.prisma.order.update({
       where: { id },
       data,
@@ -103,7 +104,7 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
-  async delete(id: string): Promise<Order> {
+  async delete(id: string): Promise<OrderWithRelations> {
     return this.prisma.order.update({
       where: { id },
       data: {

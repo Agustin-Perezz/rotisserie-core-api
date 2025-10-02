@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { Order } from '@prisma/client';
 
 import { OrderRepository } from '@/order/infrastructure/persistence/order.repository.impl';
 
+import { OrderWithRelations } from '../../domain/interfaces/order.repository';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
 
@@ -10,16 +10,16 @@ import { UpdateOrderDto } from '../dto/update-order.dto';
 export class OrderService {
   constructor(private orderRepository: OrderRepository) {}
 
-  async create(orderData: CreateOrderDto): Promise<Order> {
+  async create(orderData: CreateOrderDto): Promise<OrderWithRelations> {
     const order = await this.orderRepository.create(orderData);
     return order;
   }
 
-  async findAll(): Promise<Order[]> {
+  async findAll(): Promise<OrderWithRelations[]> {
     return this.orderRepository.findAll();
   }
 
-  async findById(id: string): Promise<Order> {
+  async findById(id: string): Promise<OrderWithRelations> {
     const order = await this.orderRepository.findById(id);
     if (!order) {
       throw new Error('Order not found');
@@ -27,15 +27,18 @@ export class OrderService {
     return order;
   }
 
-  async findByShopId(shopId: string): Promise<Order[]> {
+  async findByShopId(shopId: string): Promise<OrderWithRelations[]> {
     return this.orderRepository.findByShopId(shopId);
   }
 
-  async update(id: string, orderData: UpdateOrderDto): Promise<Order> {
+  async update(
+    id: string,
+    orderData: UpdateOrderDto,
+  ): Promise<OrderWithRelations> {
     return this.orderRepository.update(id, orderData);
   }
 
-  async delete(id: string): Promise<Order> {
+  async delete(id: string): Promise<OrderWithRelations> {
     return this.orderRepository.delete(id);
   }
 }
