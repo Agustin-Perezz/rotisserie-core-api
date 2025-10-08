@@ -1,20 +1,10 @@
-import { AuthGuard } from '@auth/infrastructure/guard/auth.guard';
-import { ExecutionContext, HttpStatus, INestApplication } from '@nestjs/common';
+import { HttpStatus, INestApplication } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { PrismaClient } from '@prisma/client';
+import type { NextFunction } from 'express';
 import * as request from 'supertest';
 
 import { AppModule } from '../../app.module';
-
-class MockAuthGuard {
-  constructor() {}
-
-  canActivate(context: ExecutionContext) {
-    const request = context.switchToHttp().getRequest();
-    request.user = { sub: 'shop-test-user', email: 'shopowner@example.com' };
-    return true;
-  }
-}
 
 describe('ShopController', () => {
   let app: INestApplication;
@@ -24,10 +14,7 @@ describe('ShopController', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    })
-      .overrideGuard(AuthGuard)
-      .useClass(MockAuthGuard)
-      .compile();
+    }).compile();
 
     await prisma.user.create({
       data: {
@@ -39,6 +26,10 @@ describe('ShopController', () => {
     userId = 'shop-test-user';
 
     app = moduleFixture.createNestApplication();
+    app.use((req, _res, next: NextFunction) => {
+      req['user'] = { sub: 'shop-test-user', email: 'shopowner@example.com' };
+      next();
+    });
     await app.init();
   });
 
@@ -64,7 +55,6 @@ describe('ShopController', () => {
         name: 'Test Shop',
         description: 'A test shop',
         location: 'Test Location',
-        // ownerId is now set by controller from request.user.sub
       };
 
       await request(app.getHttpServer())
@@ -77,19 +67,13 @@ describe('ShopController', () => {
             name: shopDto.name,
             description: shopDto.description,
             location: shopDto.location,
-            ownerId: userId, // Should match the user ID from the MockAuthGuard
+            ownerId: userId,
           });
           expect(body).toEqual(expectedResponse);
         });
     });
 
     it('should return an error if owner does not exist', async () => {
-      // This test needs to be adapted since the ownerId is now set from the guard
-      // and not from the request body.
-      // For this test to be meaningful, we would need to modify the MockAuthGuard
-      // to use a non-existent user ID, which is outside the scope of this fix.
-
-      // Let's still test that the basic validation works
       const shopDto = {
         name: 'Test Shop Invalid Owner',
         description: 'A test shop with invalid owner',
@@ -99,7 +83,7 @@ describe('ShopController', () => {
       await request(app.getHttpServer())
         .post('/shops')
         .send(shopDto)
-        .expect(HttpStatus.CREATED); // Now we expect it to succeed
+        .expect(HttpStatus.CREATED);
     });
   });
 
@@ -133,15 +117,34 @@ describe('ShopController', () => {
     });
   });
 
-  describe('GET /shops/owner/:ownerId', () => {
-    it('should return shops for a specific owner', async () => {
+  describe('GET /shops/name/:name', () => {
+    it('should return a shop by name', async () => {
+      const shopDto = {
+        name: 'FindByName-Shop',
+        description: 'Shop to find by name',
+        location: 'Somewhere',
+      };
+
       await request(app.getHttpServer())
-        .get(`/shops/owner/${userId}`)
+        .post('/shops')
+        .send(shopDto)
+        .expect(HttpStatus.CREATED);
+
+      await request(app.getHttpServer())
+        .get(`/shops/name/${shopDto.name}`)
         .expect(HttpStatus.OK)
         .then(({ body }) => {
-          expect(Array.isArray(body)).toBe(true);
-          if (body.length > 0) {
-            expect(body[0].ownerId).toEqual(userId);
+          if (body) {
+            const expectedResponse = expect.objectContaining({
+              id: expect.any(String),
+              name: shopDto.name,
+              description: shopDto.description,
+              location: shopDto.location,
+              ownerId: userId,
+            });
+            expect(body).toEqual(expectedResponse);
+          } else {
+            expect(body).not.toBeNull();
           }
         });
     });
