@@ -18,12 +18,18 @@ export class ShopRepository implements IShopRepository {
   async findOne(id: string): Promise<Shop | null> {
     return this.prisma.shop.findUnique({
       where: { id },
+      include: {
+        items: true,
+      },
     });
   }
 
-  async findByOwner(ownerId: string): Promise<Shop[]> {
-    return this.prisma.shop.findMany({
-      where: { ownerId },
+  async findByName(name: string): Promise<Shop | null> {
+    return this.prisma.shop.findFirst({
+      where: { name },
+      include: {
+        items: true,
+      },
     });
   }
 

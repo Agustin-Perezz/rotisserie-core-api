@@ -17,8 +17,8 @@ export class ShopService {
     return this.shopRepository.findOne(id);
   }
 
-  async findByOwner(ownerId: string): Promise<Shop[]> {
-    return this.shopRepository.findByOwner(ownerId);
+  async findByName(name: string): Promise<Shop | null> {
+    return this.shopRepository.findByName(name);
   }
 
   async create(data: CreateShopDto): Promise<Shop> {
