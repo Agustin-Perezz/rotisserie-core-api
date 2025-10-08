@@ -6,7 +6,7 @@ import { UpdateShopDto } from '../../application/dto/update-shop.dto';
 export interface IShopRepository {
   findAll(): Promise<Shop[]>;
   findOne(id: string): Promise<Shop | null>;
-  findByOwner(ownerId: string): Promise<Shop[]>;
+  findByName(name: string): Promise<Shop | null>;
   add(data: CreateShopDto): Promise<Shop>;
   update(id: string, data: UpdateShopDto): Promise<Shop>;
   remove(id: string): Promise<Shop>;

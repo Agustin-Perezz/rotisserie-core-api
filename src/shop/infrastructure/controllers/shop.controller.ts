@@ -6,17 +6,15 @@ import {
   Param,
   Post,
   Put,
-  UseGuards,
 } from '@nestjs/common';
 
 import { UserId } from '@/auth/infrastructure/decorators/user.decorator';
-import { AuthGuard } from '@/auth/infrastructure/guard/auth.guard';
 
 import { CreateShopDto } from '../../application/dto/create-shop.dto';
 import { UpdateShopDto } from '../../application/dto/update-shop.dto';
 import { ShopService } from '../../application/services/shop.service';
 
-@UseGuards(AuthGuard)
+//@UseGuards(AuthGuard)
 @Controller('shops')
 export class ShopController {
   constructor(private readonly shopService: ShopService) {}
@@ -31,9 +29,9 @@ export class ShopController {
     return this.shopService.findOne(id);
   }
 
-  @Get('owner/:ownerId')
-  findByOwner(@Param('ownerId') ownerId: string) {
-    return this.shopService.findByOwner(ownerId);
+  @Get('name/:name')
+  findByName(@Param('name') name: string) {
+    return this.shopService.findByName(name);
   }
 
   @Post()
