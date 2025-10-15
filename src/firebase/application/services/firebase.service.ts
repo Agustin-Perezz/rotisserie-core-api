@@ -26,7 +26,9 @@ export class FirebaseService implements OnModuleInit, IFirebaseService {
   private initializeFirebase() {
     try {
       if (admin.apps.length === 0) {
-        const credential = admin.credential.applicationDefault();
+        const credential = admin.credential.cert(
+          this.config.serviceAccountPath!,
+        );
 
         this.firebaseApp = admin.initializeApp({
           credential,
@@ -51,5 +53,37 @@ export class FirebaseService implements OnModuleInit, IFirebaseService {
 
   getAuth(): admin.auth.Auth {
     return admin.auth(this.firebaseApp);
+  }
+
+  getStorage(): admin.storage.Storage {
+    return admin.storage(this.firebaseApp);
+  }
+
+  async uploadFile(file: Express.Multer.File, folder: string): Promise<string> {
+    try {
+      if (!this.config.storageBucket) {
+        throw new Error(
+          'Storage bucket not configured. Please set FIREBASE_STORAGE_BUCKET environment variable.',
+        );
+      }
+
+      const bucket = this.getStorage().bucket(this.config.storageBucket);
+      const fileName = `${folder}/${Date.now()}_${file.originalname}`;
+      const fileUpload = bucket.file(fileName);
+
+      await fileUpload.save(file.buffer, {
+        metadata: {
+          contentType: file.mimetype,
+        },
+      });
+
+      await fileUpload.makePublic();
+
+      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      return publicUrl;
+    } catch (error) {
+      this.logger.error('Error uploading file to Firebase Storage:', error);
+      throw error;
+    }
   }
 }

@@ -10,7 +10,12 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
-  app.useGlobalPipes(new ValidationPipe());
+  app.useGlobalPipes(
+    new ValidationPipe({
+      transform: true,
+      whitelist: true,
+    }),
+  );
   app.setGlobalPrefix('api/v1');
   await app.listen(process.env.PORT ?? 3000);
 }

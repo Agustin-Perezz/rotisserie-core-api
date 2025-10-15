@@ -5,10 +5,7 @@ import { FirebaseService } from './application/services/firebase.service';
 import { FirebaseConfig } from './infrastructure/config/firebase-config.interface';
 
 @Global()
-@Module({
-  providers: [FirebaseService],
-  exports: [FirebaseService],
-})
+@Module({})
 export class FirebaseModule {
   static forRoot(config?: FirebaseConfig): DynamicModule {
     return {
@@ -17,10 +14,19 @@ export class FirebaseModule {
         {
           provide: 'FIREBASE_CONFIG',
           useFactory: (configService: ConfigService) => {
+            const projectId = configService.get<string>('firebase.projectId');
+            const storageBucket = configService.get<string>(
+              'firebase.storageBucket',
+            );
+            const serviceAccountPath = configService.get<string>(
+              'firebase.serviceAccountPath',
+            );
+
             return (
               config || {
-                projectId:
-                  configService.get<string>('firebase.projectId') || '',
+                projectId: projectId || '',
+                storageBucket: storageBucket || '',
+                serviceAccountPath: serviceAccountPath || '',
               }
             );
           },
