@@ -7,7 +7,10 @@ import {
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 import { CreateItemDto } from '../../application/dto/create-item.dto';
 import { UpdateItemDto } from '../../application/dto/update-item.dto';
@@ -18,8 +21,12 @@ export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
   @Post()
-  create(@Body() createItemDto: CreateItemDto) {
-    return this.itemService.create(createItemDto);
+  @UseInterceptors(FileInterceptor('image'))
+  create(
+    @Body() createItemDto: CreateItemDto,
+    @UploadedFile() file?: Express.Multer.File,
+  ) {
+    return this.itemService.create(createItemDto, file);
   }
 
   @Get()

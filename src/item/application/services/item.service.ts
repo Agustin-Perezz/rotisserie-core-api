@@ -1,14 +1,22 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { FirebaseService } from '../../../firebase/application/services/firebase.service';
 import { ItemRepository } from '../../infrastructure/persistence/item.repository';
 import { CreateItemDto } from '../dto/create-item.dto';
 import { UpdateItemDto } from '../dto/update-item.dto';
 
 @Injectable()
 export class ItemService {
-  constructor(private readonly itemRepository: ItemRepository) {}
+  constructor(
+    private readonly itemRepository: ItemRepository,
+    private readonly firebaseService: FirebaseService,
+  ) {}
 
-  async create(createItemDto: CreateItemDto) {
+  async create(createItemDto: CreateItemDto, file?: Express.Multer.File) {
+    if (file) {
+      const imageUrl = await this.firebaseService.uploadFile(file, 'items');
+      createItemDto.image = imageUrl;
+    }
     return this.itemRepository.create(createItemDto);
   }
 

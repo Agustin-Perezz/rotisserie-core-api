@@ -1,3 +1,4 @@
+import { Transform } from 'class-transformer';
 import {
   IsNotEmpty,
   IsNumber,
@@ -16,6 +17,7 @@ export class CreateItemDto {
   description?: string;
 
   @IsNotEmpty()
+  @Transform(({ value }) => Number(value))
   @IsNumber()
   price: number;
 
