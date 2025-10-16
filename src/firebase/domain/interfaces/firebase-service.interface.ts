@@ -5,4 +5,5 @@ export interface IFirebaseService {
   getAuth(): admin.auth.Auth;
   getStorage(): admin.storage.Storage;
   uploadFile(file: Express.Multer.File, folder: string): Promise<string>;
+  deleteFile(fileUrl: string): Promise<void>;
 }
