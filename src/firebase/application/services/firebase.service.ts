@@ -86,4 +86,24 @@ export class FirebaseService implements OnModuleInit, IFirebaseService {
       throw error;
     }
   }
+
+  async deleteFile(fileUrl: string): Promise<void> {
+    try {
+      const bucket = this.getStorage().bucket(this.config.storageBucket);
+      const baseUrl = `https://storage.googleapis.com/${bucket.name}/`;
+
+      if (!fileUrl.startsWith(baseUrl)) {
+        this.logger.warn(`File URL does not match expected format: ${fileUrl}`);
+        return;
+      }
+
+      const filePath = fileUrl.replace(baseUrl, '');
+      const file = bucket.file(decodeURIComponent(filePath));
+
+      await file.delete();
+    } catch (error) {
+      this.logger.error('Error deleting file from Firebase Storage:', error);
+      throw error;
+    }
+  }
 }

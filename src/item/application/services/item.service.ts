@@ -40,8 +40,21 @@ export class ItemService {
     return this.itemRepository.findByShopName(shopName);
   }
 
-  async update(id: string, updateItemDto: UpdateItemDto) {
-    await this.findById(id);
+  async update(
+    id: string,
+    updateItemDto: UpdateItemDto,
+    file?: Express.Multer.File,
+  ) {
+    const currentItem = await this.findById(id);
+
+    if (file) {
+      if (currentItem.image) {
+        await this.firebaseService.deleteFile(currentItem.image);
+      }
+      const imageUrl = await this.firebaseService.uploadFile(file, 'items');
+      updateItemDto.image = imageUrl;
+    }
+
     return this.itemRepository.update(id, updateItemDto);
   }
 
