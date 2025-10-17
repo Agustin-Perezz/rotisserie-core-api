@@ -3,15 +3,20 @@ import { Injectable } from '@nestjs/common';
 import { OrderRepository } from '@/order/infrastructure/persistence/order.repository.impl';
 
 import { OrderWithRelations } from '../../domain/interfaces/order.repository';
+import { OrderGateway } from '../../infrastructure/gateways/order.gateway';
 import { CreateOrderDto } from '../dto/create-order.dto';
 import { UpdateOrderDto } from '../dto/update-order.dto';
 
 @Injectable()
 export class OrderService {
-  constructor(private orderRepository: OrderRepository) {}
+  constructor(
+    private orderRepository: OrderRepository,
+    private orderGateway: OrderGateway,
+  ) {}
 
   async create(orderData: CreateOrderDto): Promise<OrderWithRelations> {
     const order = await this.orderRepository.create(orderData);
+    this.orderGateway.emitNewOrder(order.shopId, order);
     return order;
   }
 
@@ -35,7 +40,9 @@ export class OrderService {
     id: string,
     orderData: UpdateOrderDto,
   ): Promise<OrderWithRelations> {
-    return this.orderRepository.update(id, orderData);
+    const order = await this.orderRepository.update(id, orderData);
+    this.orderGateway.emitOrderUpdate(order.shopId, order);
+    return order;
   }
 
   async delete(id: string): Promise<OrderWithRelations> {
