@@ -21,6 +21,10 @@ export class ShopService {
     return this.shopRepository.findByName(name);
   }
 
+  async findByOwnerId(ownerId: string): Promise<Shop[]> {
+    return this.shopRepository.findByOwnerId(ownerId);
+  }
+
   async create(data: CreateShopDto): Promise<Shop> {
     return this.shopRepository.add(data);
   }
