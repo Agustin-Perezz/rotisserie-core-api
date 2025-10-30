@@ -5,6 +5,15 @@ import type { NextFunction } from 'express';
 import * as request from 'supertest';
 
 import { AppModule } from '../../app.module';
+import { AuthGuard } from '../../auth/infrastructure/guard/auth.guard';
+
+class MockAuthGuard {
+  constructor() {}
+
+  canActivate() {
+    return true;
+  }
+}
 
 describe('ShopController', () => {
   let app: INestApplication;
@@ -14,7 +23,10 @@ describe('ShopController', () => {
   beforeAll(async () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [AppModule],
-    }).compile();
+    })
+      .overrideGuard(AuthGuard)
+      .useClass(MockAuthGuard)
+      .compile();
 
     await prisma.user.create({
       data: {
