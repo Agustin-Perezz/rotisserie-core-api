@@ -33,6 +33,15 @@ export class ShopRepository implements IShopRepository {
     });
   }
 
+  async findByOwnerId(ownerId: string): Promise<Shop[]> {
+    return this.prisma.shop.findMany({
+      where: { ownerId },
+      include: {
+        items: true,
+      },
+    });
+  }
+
   async add(data: CreateShopDto): Promise<Shop> {
     const owner = await this.prisma.user.findUnique({
       where: { id: data.ownerId },
