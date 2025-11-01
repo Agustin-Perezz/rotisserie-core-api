@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { OrderStatus } from '@prisma/client';
 
 import { OrderRepository } from '@/order/infrastructure/persistence/order.repository.impl';
 
@@ -32,8 +33,11 @@ export class OrderService {
     return order;
   }
 
-  async findByShopId(shopId: string): Promise<OrderWithRelations[]> {
-    return this.orderRepository.findByShopId(shopId);
+  async findByShopId(
+    shopId: string,
+    status?: OrderStatus,
+  ): Promise<OrderWithRelations[]> {
+    return this.orderRepository.findByShopId(shopId, status);
   }
 
   async update(

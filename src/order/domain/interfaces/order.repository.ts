@@ -24,7 +24,10 @@ export interface IOrderRepository {
   create(data: CreateOrderData): Promise<OrderWithRelations>;
   findAll(): Promise<OrderWithRelations[]>;
   findById(id: string): Promise<OrderWithRelations | null>;
-  findByShopId(shopId: string): Promise<OrderWithRelations[]>;
+  findByShopId(
+    shopId: string,
+    status?: OrderStatus,
+  ): Promise<OrderWithRelations[]>;
   update(id: string, data: UpdateOrderData): Promise<OrderWithRelations>;
   delete(id: string): Promise<OrderWithRelations>;
 }
