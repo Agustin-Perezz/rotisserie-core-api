@@ -5,6 +5,7 @@ import { OrderStatus, PrismaClient } from '@prisma/client';
 import * as request from 'supertest';
 
 import { AppModule } from '../../app.module';
+import { OrderWithRelations } from '../domain/interfaces/order.repository';
 
 class MockAuthGuard {
   constructor() {}
@@ -144,13 +145,106 @@ describe('OrderController', () => {
   });
 
   describe('GET /orders/shop/:shopId', () => {
+    beforeEach(async () => {
+      await prisma.orderItem.deleteMany({});
+      await prisma.order.deleteMany({});
+    });
+
     it('should return orders by shop id', async () => {
+      const orderDto = {
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 1,
+          },
+        ],
+      };
+      await request(app.getHttpServer()).post('/orders').send(orderDto);
+
       await request(app.getHttpServer())
         .get('/orders/shop/shop-1')
         .expect(HttpStatus.OK)
         .then(({ body }) => {
           expect(Array.isArray(body)).toBe(true);
+          expect(body.length).toBeGreaterThan(0);
         });
+    });
+
+    it('should filter orders by status for a shop', async () => {
+      const order1Dto = {
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 1,
+          },
+        ],
+      };
+      const order2Dto = {
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 2,
+          },
+        ],
+      };
+
+      const res1 = await request(app.getHttpServer())
+        .post('/orders')
+        .send(order1Dto);
+      const order1Id = res1.body.id;
+
+      await request(app.getHttpServer()).post('/orders').send(order2Dto);
+
+      await request(app.getHttpServer())
+        .patch(`/orders/${order1Id}`)
+        .send({ status: OrderStatus.COMPLETED });
+
+      const res = await request(app.getHttpServer())
+        .get(`/orders/shop/shop-1?status=${OrderStatus.COMPLETED}`)
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBe(1);
+      expect(res.body[0].status).toBe(OrderStatus.COMPLETED);
+      expect(res.body[0].id).toBe(order1Id);
+      expect(res.body[0].shopId).toBe('shop-1');
+    });
+
+    it('should return all orders for a shop when no status filter is provided', async () => {
+      const order1Dto = {
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 1,
+          },
+        ],
+      };
+      const order2Dto = {
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 2,
+          },
+        ],
+      };
+
+      await request(app.getHttpServer()).post('/orders').send(order1Dto);
+      await request(app.getHttpServer()).post('/orders').send(order2Dto);
+
+      const res = await request(app.getHttpServer())
+        .get('/orders/shop/shop-1')
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBeGreaterThanOrEqual(2);
+      (res.body as OrderWithRelations[]).forEach((order) => {
+        expect(order.shopId).toBe('shop-1');
+      });
     });
   });
 
