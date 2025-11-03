@@ -4,9 +4,12 @@ import {
   Delete,
   Get,
   Param,
+  ParseEnumPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
+import { OrderStatus } from '@prisma/client';
 
 import { CreateOrderDto } from '../../application/dto/create-order.dto';
 import { UpdateOrderDto } from '../../application/dto/update-order.dto';
@@ -28,8 +31,12 @@ export class OrderController {
   }
 
   @Get('shop/:shopId')
-  findByShopId(@Param('shopId') shopId: string) {
-    return this.orderService.findByShopId(shopId);
+  findByShopId(
+    @Param('shopId') shopId: string,
+    @Query('status', new ParseEnumPipe(OrderStatus, { optional: true }))
+    status?: OrderStatus,
+  ) {
+    return this.orderService.findByShopId(shopId, status);
   }
 
   @Get(':id')
