@@ -18,4 +18,7 @@ export const environmentConfig = () => ({
     port: process.env.PORT || 3000,
     nodeEnv: process.env.NODE_ENV || 'development',
   },
+  frontend: {
+    redirectUrl: process.env.FRONTEND_REDIRECT_URL,
+  },
 });
