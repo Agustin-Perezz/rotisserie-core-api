@@ -9,11 +9,17 @@ import {
   Param,
   Post,
   Query,
+  Res,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { Response } from 'express';
 
 @Controller('mp')
 export class MpController {
-  constructor(private readonly mercadoPagoService: MercadoPagoService) {}
+  constructor(
+    private readonly mercadoPagoService: MercadoPagoService,
+    private readonly configService: ConfigService,
+  ) {}
 
   @Get('login')
   mpLogin(@Query('sellerId') sellerId: string) {
@@ -31,7 +37,11 @@ export class MpController {
   }
 
   @Get('callback')
-  async mpCallback(@Query('code') code: string, @Query('state') state: string) {
+  async mpCallback(
+    @Query('code') code: string,
+    @Query('state') state: string,
+    @Res() res: Response,
+  ) {
     const [userId, codeVerifier] = decodeURIComponent(state).split(':');
 
     if (!codeVerifier) {
@@ -40,16 +50,16 @@ export class MpController {
       );
     }
 
-    const data = await this.mercadoPagoService.exchangeCodeForToken(
+    await this.mercadoPagoService.exchangeCodeForToken(
       code,
       userId,
       codeVerifier,
     );
 
-    return {
-      message: `User ${userId} connected to Mercado Pago`,
-      data,
-    };
+    const redirectUrl =
+      this.configService.get<string>('frontend.redirectUrl') || '';
+
+    return res.redirect(redirectUrl);
   }
 
   @Get('public-key/:ownerId')
