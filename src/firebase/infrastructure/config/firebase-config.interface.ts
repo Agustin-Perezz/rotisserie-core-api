@@ -6,4 +6,5 @@ export interface FirebaseConfig {
   storageBucket?: string;
   projectId?: string;
   serviceAccountPath?: string;
+  publicUrlBase?: string;
 }
