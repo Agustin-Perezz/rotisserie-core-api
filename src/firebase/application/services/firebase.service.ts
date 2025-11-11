@@ -79,10 +79,25 @@ export class FirebaseService implements OnModuleInit, IFirebaseService {
 
       await fileUpload.makePublic();
 
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+      const publicUrl = `${this.config.publicUrlBase}/${bucket.name}/${fileName}`;
       return publicUrl;
     } catch (error) {
       this.logger.error('Error uploading file to Firebase Storage:', error);
+      throw error;
+    }
+  }
+  async uploadFiles(
+    files: Express.Multer.File[],
+    folder: string,
+  ): Promise<string[]> {
+    try {
+      const uploadPromises = files.map(async (file) => {
+        return await this.uploadFile(file, folder);
+      });
+
+      return await Promise.all(uploadPromises);
+    } catch (error) {
+      this.logger.error('Error uploading files to Firebase Storage:', error);
       throw error;
     }
   }
@@ -90,7 +105,7 @@ export class FirebaseService implements OnModuleInit, IFirebaseService {
   async deleteFile(fileUrl: string): Promise<void> {
     try {
       const bucket = this.getStorage().bucket(this.config.storageBucket);
-      const baseUrl = `https://storage.googleapis.com/${bucket.name}/`;
+      const baseUrl = `${this.config.publicUrlBase}/${bucket.name}/`;
 
       if (!fileUrl.startsWith(baseUrl)) {
         this.logger.warn(`File URL does not match expected format: ${fileUrl}`);
