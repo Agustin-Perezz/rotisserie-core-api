@@ -7,15 +7,19 @@ import { UpdateItemDto } from '../dto/update-item.dto';
 
 @Injectable()
 export class ItemService {
+  private static readonly IMAGES_FOLDER = 'items';
+
   constructor(
     private readonly itemRepository: ItemRepository,
     private readonly firebaseService: FirebaseService,
   ) {}
 
-  async create(createItemDto: CreateItemDto, file?: Express.Multer.File) {
-    if (file) {
-      const imageUrl = await this.firebaseService.uploadFile(file, 'items');
-      createItemDto.image = imageUrl;
+  async create(createItemDto: CreateItemDto, files?: Express.Multer.File[]) {
+    if (files?.length) {
+      createItemDto.images = await this.firebaseService.uploadFiles(
+        files,
+        ItemService.IMAGES_FOLDER,
+      );
     }
     return this.itemRepository.create(createItemDto);
   }
@@ -43,16 +47,15 @@ export class ItemService {
   async update(
     id: string,
     updateItemDto: UpdateItemDto,
-    file?: Express.Multer.File,
+    files?: Express.Multer.File[],
   ) {
-    const currentItem = await this.findById(id);
+    await this.findById(id);
 
-    if (file) {
-      if (currentItem.image) {
-        await this.firebaseService.deleteFile(currentItem.image);
-      }
-      const imageUrl = await this.firebaseService.uploadFile(file, 'items');
-      updateItemDto.image = imageUrl;
+    if (files?.length) {
+      updateItemDto.images = await this.firebaseService.uploadFiles(
+        files,
+        ItemService.IMAGES_FOLDER,
+      );
     }
 
     return this.itemRepository.update(id, updateItemDto);

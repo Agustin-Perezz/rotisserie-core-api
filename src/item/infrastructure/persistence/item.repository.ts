@@ -9,25 +9,44 @@ import { IItemRepository } from '../../domain/interfaces/item-repository.interfa
 export class ItemRepository implements IItemRepository {
   constructor(private prisma: PrismaService) {}
 
-  async create(createItemDto: CreateItemDto) {
+  async create(data: CreateItemDto) {
+    const imagesData = data.images?.map((url) => ({ url }));
     return this.prisma.item.create({
-      data: createItemDto,
+      data: {
+        ...data,
+        images: {
+          create: imagesData,
+        },
+      },
+      include: {
+        images: true,
+      },
     });
   }
 
   async findAll() {
-    return this.prisma.item.findMany();
+    return this.prisma.item.findMany({
+      include: {
+        images: true,
+      },
+    });
   }
 
   async findById(id: string) {
     return this.prisma.item.findUnique({
       where: { id },
+      include: {
+        images: true,
+      },
     });
   }
 
   async findByShopId(shopId: string) {
     return this.prisma.item.findMany({
       where: { shopId },
+      include: {
+        images: true,
+      },
     });
   }
 
@@ -38,13 +57,23 @@ export class ItemRepository implements IItemRepository {
           name: shopName,
         },
       },
+      include: {
+        images: true,
+      },
     });
   }
 
-  async update(id: string, updateItemDto: UpdateItemDto) {
+  async update(id: string, data: UpdateItemDto) {
+    const imagesData = data.images?.map((url) => ({ url }));
     return this.prisma.item.update({
       where: { id },
-      data: updateItemDto,
+      data: {
+        ...data,
+        images: {
+          deleteMany: {},
+          create: imagesData,
+        },
+      },
     });
   }
 

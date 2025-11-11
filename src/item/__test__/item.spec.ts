@@ -100,7 +100,7 @@ describe('ItemController', () => {
         name: 'Test Item',
         description: 'A test item description',
         price: 19.99,
-        image: 'test-image-url.jpg',
+        images: ['test-image-url.jpg'],
         shopId: shopId,
       };
 
@@ -114,7 +114,7 @@ describe('ItemController', () => {
             name: itemDto.name,
             description: itemDto.description,
             price: itemDto.price,
-            image: itemDto.image,
+            images: itemDto.images,
             shopId: shopId,
           });
           expect(body).toEqual(expectedResponse);
@@ -144,7 +144,7 @@ describe('ItemController', () => {
         name: 'Single Item',
         description: 'An item for single fetch test',
         price: 29.99,
-        image: 'single-item-image.jpg',
+        images: ['single-item-image.jpg'],
         shopId: shopId,
       };
 
@@ -163,7 +163,7 @@ describe('ItemController', () => {
             name: itemDto.name,
             description: itemDto.description,
             price: itemDto.price,
-            image: itemDto.image,
+            images: itemDto.images,
             shopId: shopId,
           });
           expect(body).toEqual(expectedResponse);
@@ -185,7 +185,7 @@ describe('ItemController', () => {
         name: 'Update Item',
         description: 'An item for update test',
         price: 39.99,
-        image: 'update-item-image.jpg',
+        images: ['update-item-image.jpg'],
         shopId: shopId,
       };
 
@@ -212,9 +212,23 @@ describe('ItemController', () => {
             id: itemId,
             name: updateDto.name,
             price: updateDto.price,
+            images: expect.arrayContaining([expect.any(String)]),
             shopId: shopId,
           });
           expect(body).toEqual(expectedResponse);
+        });
+    });
+
+    it('should replace item images', async () => {
+      const newImages = ['updated-image-1.jpg', 'updated-image-2.jpg'];
+
+      await request(app.getHttpServer())
+        .patch(`/items/${itemId}`)
+        .send({ images: newImages })
+        .expect(HttpStatus.OK)
+        .then(({ body }) => {
+          expect(body.images).toEqual(expect.arrayContaining(newImages));
+          expect(body.images).toHaveLength(newImages.length);
         });
     });
 
@@ -236,7 +250,7 @@ describe('ItemController', () => {
         name: 'Delete Item',
         description: 'An item for delete test',
         price: 59.99,
-        image: 'delete-item-image.jpg',
+        images: ['delete-item-image.jpg'],
         shopId: shopId,
       };
 
