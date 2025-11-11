@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { ItemWithImages } from '@/item/domain/interfaces/item-repository.interface';
+
 import { FirebaseService } from '../../../firebase/application/services/firebase.service';
 import { ItemRepository } from '../../infrastructure/persistence/item.repository';
 import { CreateItemDto } from '../dto/create-item.dto';
@@ -64,5 +66,25 @@ export class ItemService {
   async delete(id: string) {
     await this.findById(id);
     return this.itemRepository.delete(id);
+  }
+
+  async deleteImage(itemId: string, imageUrl: string) {
+    const item = await this.findById(itemId);
+    const image = this.matchImageUrlOrThrowError(item, imageUrl);
+
+    await this.firebaseService.deleteFile(image.url);
+    return this.itemRepository.deleteImage(image.id);
+  }
+
+  private matchImageUrlOrThrowError(item: ItemWithImages, imageUrl: string) {
+    const image = item.images.find((img) => img.url === imageUrl);
+
+    if (!image) {
+      throw new NotFoundException(
+        `Image with URL ${imageUrl} not found for item ${item.id}`,
+      );
+    }
+
+    return image;
   }
 }

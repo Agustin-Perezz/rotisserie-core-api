@@ -82,4 +82,10 @@ export class ItemRepository implements IItemRepository {
       where: { id },
     });
   }
+
+  async deleteImage(imageId: string) {
+    return this.prisma.itemImage.delete({
+      where: { id: imageId },
+    });
+  }
 }

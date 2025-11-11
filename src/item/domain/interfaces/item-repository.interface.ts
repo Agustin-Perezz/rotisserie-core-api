@@ -13,4 +13,5 @@ export interface IItemRepository {
   delete(id: string): Promise<Item>;
   findByShopId(shopId: string): Promise<ItemWithImages[]>;
   findByShopName(shopName: string): Promise<ItemWithImages[]>;
+  deleteImage(imageId: string): Promise<ItemImage>;
 }

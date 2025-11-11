@@ -61,4 +61,9 @@ export class ItemController {
   remove(@Param('id') id: string) {
     return this.itemService.delete(id);
   }
+
+  @Delete(':id/images')
+  removeImage(@Param('id') id: string, @Query('imageId') imageId: string) {
+    return this.itemService.deleteImage(id, imageId);
+  }
 }
