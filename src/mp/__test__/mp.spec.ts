@@ -144,11 +144,7 @@ describe('MpController E2E', () => {
       await request(app.getHttpServer())
         .get('/mp/callback')
         .query({ code, state })
-        .expect(HttpStatus.OK)
-        .expect((res) => {
-          expect(res.body.message).toBeDefined();
-          expect(res.body.data).toBeDefined();
-        });
+        .expect(HttpStatus.FOUND);
 
       expect(
         mockPaymentAccountService.upsertPaymentAccount,
@@ -568,11 +564,7 @@ describe('MpController E2E', () => {
       await request(app.getHttpServer())
         .get('/mp/callback')
         .query({ code, state })
-        .expect(HttpStatus.OK)
-        .expect((res) => {
-          expect(res.body.message).toBeDefined();
-          expect(res.body.data).toBeDefined();
-        });
+        .expect(HttpStatus.FOUND);
 
       expect(
         mockPaymentAccountService.upsertPaymentAccount,
