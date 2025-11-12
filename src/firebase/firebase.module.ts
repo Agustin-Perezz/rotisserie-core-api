@@ -21,12 +21,16 @@ export class FirebaseModule {
             const serviceAccountPath = configService.get<string>(
               'firebase.serviceAccountPath',
             );
+            const publicUrlBase = configService.get<string>(
+              'firebase.publicUrlBase',
+            );
 
             return (
               config || {
                 projectId: projectId || '',
                 storageBucket: storageBucket || '',
                 serviceAccountPath: serviceAccountPath || '',
+                publicUrlBase: publicUrlBase || '',
               }
             );
           },

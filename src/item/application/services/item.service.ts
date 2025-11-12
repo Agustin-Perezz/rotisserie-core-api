@@ -1,5 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 
+import { ItemWithImages } from '@/item/domain/interfaces/item-repository.interface';
+
 import { FirebaseService } from '../../../firebase/application/services/firebase.service';
 import { ItemRepository } from '../../infrastructure/persistence/item.repository';
 import { CreateItemDto } from '../dto/create-item.dto';
@@ -7,15 +9,19 @@ import { UpdateItemDto } from '../dto/update-item.dto';
 
 @Injectable()
 export class ItemService {
+  private static readonly IMAGES_FOLDER = 'items';
+
   constructor(
     private readonly itemRepository: ItemRepository,
     private readonly firebaseService: FirebaseService,
   ) {}
 
-  async create(createItemDto: CreateItemDto, file?: Express.Multer.File) {
-    if (file) {
-      const imageUrl = await this.firebaseService.uploadFile(file, 'items');
-      createItemDto.image = imageUrl;
+  async create(createItemDto: CreateItemDto, files?: Express.Multer.File[]) {
+    if (files?.length) {
+      createItemDto.images = await this.firebaseService.uploadFiles(
+        files,
+        ItemService.IMAGES_FOLDER,
+      );
     }
     return this.itemRepository.create(createItemDto);
   }
@@ -43,16 +49,15 @@ export class ItemService {
   async update(
     id: string,
     updateItemDto: UpdateItemDto,
-    file?: Express.Multer.File,
+    files?: Express.Multer.File[],
   ) {
-    const currentItem = await this.findById(id);
+    await this.findById(id);
 
-    if (file) {
-      if (currentItem.image) {
-        await this.firebaseService.deleteFile(currentItem.image);
-      }
-      const imageUrl = await this.firebaseService.uploadFile(file, 'items');
-      updateItemDto.image = imageUrl;
+    if (files?.length) {
+      updateItemDto.images = await this.firebaseService.uploadFiles(
+        files,
+        ItemService.IMAGES_FOLDER,
+      );
     }
 
     return this.itemRepository.update(id, updateItemDto);
@@ -61,5 +66,25 @@ export class ItemService {
   async delete(id: string) {
     await this.findById(id);
     return this.itemRepository.delete(id);
+  }
+
+  async deleteImage(itemId: string, imageUrl: string) {
+    const item = await this.findById(itemId);
+    const image = this.matchImageUrlOrThrowError(item, imageUrl);
+
+    await this.firebaseService.deleteFile(image.url);
+    return this.itemRepository.deleteImage(image.id);
+  }
+
+  private matchImageUrlOrThrowError(item: ItemWithImages, imageUrl: string) {
+    const image = item.images.find((img) => img.url === imageUrl);
+
+    if (!image) {
+      throw new NotFoundException(
+        `Image with URL ${imageUrl} not found for item ${item.id}`,
+      );
+    }
+
+    return image;
   }
 }

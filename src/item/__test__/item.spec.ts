@@ -100,7 +100,7 @@ describe('ItemController', () => {
         name: 'Test Item',
         description: 'A test item description',
         price: 19.99,
-        image: 'test-image-url.jpg',
+        images: ['test-image-url.jpg'],
         shopId: shopId,
       };
 
@@ -114,7 +114,9 @@ describe('ItemController', () => {
             name: itemDto.name,
             description: itemDto.description,
             price: itemDto.price,
-            image: itemDto.image,
+            images: expect.arrayContaining([
+              expect.objectContaining({ url: expect.any(String) }),
+            ]),
             shopId: shopId,
           });
           expect(body).toEqual(expectedResponse);
@@ -124,7 +126,6 @@ describe('ItemController', () => {
     it('should return an error if required fields are missing', async () => {
       const incompleteItemDto = {
         description: 'An incomplete item',
-        // Missing required name and price
         shopId: shopId,
       };
 
@@ -139,12 +140,11 @@ describe('ItemController', () => {
     let itemId: string;
 
     it('should return a single item by id', async () => {
-      // First create an item
       const itemDto = {
         name: 'Single Item',
         description: 'An item for single fetch test',
         price: 29.99,
-        image: 'single-item-image.jpg',
+        images: ['single-item-image.jpg'],
         shopId: shopId,
       };
 
@@ -163,7 +163,9 @@ describe('ItemController', () => {
             name: itemDto.name,
             description: itemDto.description,
             price: itemDto.price,
-            image: itemDto.image,
+            images: expect.arrayContaining([
+              expect.objectContaining({ url: expect.any(String) }),
+            ]),
             shopId: shopId,
           });
           expect(body).toEqual(expectedResponse);
@@ -185,7 +187,7 @@ describe('ItemController', () => {
         name: 'Update Item',
         description: 'An item for update test',
         price: 39.99,
-        image: 'update-item-image.jpg',
+        images: ['update-item-image.jpg'],
         shopId: shopId,
       };
 
@@ -218,6 +220,15 @@ describe('ItemController', () => {
         });
     });
 
+    it('should replace item images', async () => {
+      const newImages = ['updated-image-1.jpg', 'updated-image-2.jpg'];
+
+      await request(app.getHttpServer())
+        .patch(`/items/${itemId}`)
+        .send({ images: newImages })
+        .expect(HttpStatus.OK);
+    });
+
     it('should return 404 for updating a non-existent item', async () => {
       const updateDto = { name: 'This Will Fail' };
 
@@ -236,7 +247,7 @@ describe('ItemController', () => {
         name: 'Delete Item',
         description: 'An item for delete test',
         price: 59.99,
-        image: 'delete-item-image.jpg',
+        images: ['delete-item-image.jpg'],
         shopId: shopId,
       };
 

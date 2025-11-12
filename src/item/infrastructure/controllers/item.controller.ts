@@ -7,11 +7,11 @@ import {
   Patch,
   Post,
   Query,
-  UploadedFile,
+  UploadedFiles,
   UseInterceptors,
 } from '@nestjs/common';
-import { FileInterceptor } from '@nestjs/platform-express';
 
+import { imagesUploadInterceptor } from '../../../common/interceptors/images-upload.interceptor';
 import { CreateItemDto } from '../../application/dto/create-item.dto';
 import { UpdateItemDto } from '../../application/dto/update-item.dto';
 import { ItemService } from '../../application/services/item.service';
@@ -21,12 +21,12 @@ export class ItemController {
   constructor(private readonly itemService: ItemService) {}
 
   @Post()
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(imagesUploadInterceptor('images', 3))
   create(
     @Body() createItemDto: CreateItemDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    return this.itemService.create(createItemDto, file);
+    return this.itemService.create(createItemDto, files);
   }
 
   @Get()
@@ -48,17 +48,22 @@ export class ItemController {
   }
 
   @Patch(':id')
-  @UseInterceptors(FileInterceptor('image'))
+  @UseInterceptors(imagesUploadInterceptor('images', 3))
   update(
     @Param('id') id: string,
     @Body() updateItemDto: UpdateItemDto,
-    @UploadedFile() file?: Express.Multer.File,
+    @UploadedFiles() files?: Express.Multer.File[],
   ) {
-    return this.itemService.update(id, updateItemDto, file);
+    return this.itemService.update(id, updateItemDto, files);
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.itemService.delete(id);
+  }
+
+  @Delete(':id/images')
+  removeImage(@Param('id') id: string, @Query('imageId') imageId: string) {
+    return this.itemService.deleteImage(id, imageId);
   }
 }

@@ -65,10 +65,10 @@ model Item {
   name        String
   description String?
   price       Float
-  image       String?
   shopId      String
   shop        Shop     @relation(fields: [shopId], references: [id])
   orderItems  OrderItem[]
+  images      ItemImage[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -90,4 +90,12 @@ model OrderItem {
   orderId  String
   order    Order  @relation(fields: [orderId], references: [id])
   quantity Int
+}
+
+model ItemImage {
+  id        String   @id @default(uuid())
+  url       String
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
 }
