@@ -17,6 +17,7 @@ enum OrderStatus {
   PENDING
   PREPARING
   READY
+  SENT
   COMPLETED
   CANCELLED
 }
