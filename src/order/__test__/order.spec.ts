@@ -76,6 +76,7 @@ describe('OrderController', () => {
   describe('POST /orders', () => {
     it('should create a new order', async () => {
       const orderDto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -92,6 +93,7 @@ describe('OrderController', () => {
         .then(({ body }) => {
           const expectedResponse = expect.objectContaining({
             id: expect.any(String),
+            userId: orderDto.userId,
             shopId: orderDto.shopId,
             status: OrderStatus.PENDING,
             orderItems: expect.arrayContaining([
@@ -111,6 +113,7 @@ describe('OrderController', () => {
 
     it('should return a single order by id', async () => {
       const orderDto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -130,6 +133,7 @@ describe('OrderController', () => {
         .then(({ body }) => {
           const expectedResponse = expect.objectContaining({
             id: orderId,
+            userId: orderDto.userId,
             shopId: orderDto.shopId,
             status: OrderStatus.PENDING,
             orderItems: expect.arrayContaining([
@@ -152,6 +156,7 @@ describe('OrderController', () => {
 
     it('should return orders by shop id', async () => {
       const orderDto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -173,6 +178,7 @@ describe('OrderController', () => {
 
     it('should filter orders by status for a shop', async () => {
       const order1Dto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -182,6 +188,7 @@ describe('OrderController', () => {
         ],
       };
       const order2Dto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -215,6 +222,7 @@ describe('OrderController', () => {
 
     it('should return all orders for a shop when no status filter is provided', async () => {
       const order1Dto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -224,6 +232,7 @@ describe('OrderController', () => {
         ],
       };
       const order2Dto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -253,6 +262,7 @@ describe('OrderController', () => {
 
     beforeAll(async () => {
       const orderDto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -289,6 +299,7 @@ describe('OrderController', () => {
 
     beforeAll(async () => {
       const orderDto = {
+        userId: '1',
         shopId: 'shop-1',
         orderItems: [
           {
@@ -308,6 +319,107 @@ describe('OrderController', () => {
       await request(app.getHttpServer())
         .delete(`/orders/${orderId}`)
         .expect(HttpStatus.OK);
+    });
+  });
+
+  describe('GET /orders/user/:userId', () => {
+    beforeEach(async () => {
+      await prisma.orderItem.deleteMany({});
+      await prisma.order.deleteMany({});
+    });
+
+    it('should return orders by user id', async () => {
+      const orderDto = {
+        userId: '1',
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 1,
+          },
+        ],
+      };
+      await request(app.getHttpServer()).post('/orders').send(orderDto);
+
+      await request(app.getHttpServer())
+        .get('/orders/user/1')
+        .expect(HttpStatus.OK)
+        .then(({ body }) => {
+          expect(Array.isArray(body)).toBe(true);
+          expect(body.length).toBeGreaterThan(0);
+          expect(body[0].userId).toBe('1');
+        });
+    });
+
+    it('should return multiple orders for a user', async () => {
+      const order1Dto = {
+        userId: '1',
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 1,
+          },
+        ],
+      };
+      const order2Dto = {
+        userId: '1',
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 2,
+          },
+        ],
+      };
+
+      await request(app.getHttpServer()).post('/orders').send(order1Dto);
+      await request(app.getHttpServer()).post('/orders').send(order2Dto);
+
+      const res = await request(app.getHttpServer())
+        .get('/orders/user/1')
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBeGreaterThanOrEqual(2);
+      (res.body as OrderWithRelations[]).forEach((order) => {
+        expect(order.userId).toBe('1');
+      });
+    });
+
+    it('should return empty array for user with no orders', async () => {
+      const res = await request(app.getHttpServer())
+        .get('/orders/user/non-existent-user')
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBe(0);
+    });
+
+    it('should not return deleted orders', async () => {
+      const orderDto = {
+        userId: '1',
+        shopId: 'shop-1',
+        orderItems: [
+          {
+            itemId: 'item-1',
+            quantity: 1,
+          },
+        ],
+      };
+      const res = await request(app.getHttpServer())
+        .post('/orders')
+        .send(orderDto);
+      const orderId = res.body.id;
+
+      await request(app.getHttpServer()).delete(`/orders/${orderId}`);
+
+      const userOrdersRes = await request(app.getHttpServer())
+        .get('/orders/user/1')
+        .expect(200);
+
+      expect(Array.isArray(userOrdersRes.body)).toBe(true);
+      expect(userOrdersRes.body.length).toBe(0);
     });
   });
 });

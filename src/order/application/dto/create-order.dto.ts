@@ -21,6 +21,9 @@ export class CreateOrderItemDto {
 
 export class CreateOrderDto {
   @IsString()
+  userId: string;
+
+  @IsString()
   shopId: string;
 
   @IsOptional()

@@ -1,6 +1,7 @@
 import { Item, Order, OrderItem, OrderStatus, Shop } from '@prisma/client';
 
 export interface CreateOrderData {
+  userId: string;
   shopId: string;
   status?: OrderStatus;
   orderItems: Array<{
@@ -28,6 +29,7 @@ export interface IOrderRepository {
     shopId: string,
     status?: OrderStatus,
   ): Promise<OrderWithRelations[]>;
+  findByUserId(userId: string): Promise<OrderWithRelations[]>;
   update(id: string, data: UpdateOrderData): Promise<OrderWithRelations>;
   delete(id: string): Promise<OrderWithRelations>;
 }

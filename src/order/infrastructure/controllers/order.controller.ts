@@ -1,3 +1,4 @@
+import { AuthGuard } from '@auth/infrastructure/guard/auth.guard';
 import {
   Body,
   Controller,
@@ -8,6 +9,7 @@ import {
   Patch,
   Post,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 
@@ -16,7 +18,7 @@ import { UpdateOrderDto } from '../../application/dto/update-order.dto';
 import { OrderService } from '../../application/services/order.service';
 
 @Controller('orders')
-//@UseGuards(AuthGuard)
+@UseGuards(AuthGuard)
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
@@ -37,6 +39,11 @@ export class OrderController {
     status?: OrderStatus,
   ) {
     return this.orderService.findByShopId(shopId, status);
+  }
+
+  @Get('user/:userId')
+  findByUserId(@Param('userId') userId: string) {
+    return this.orderService.findByUserId(userId);
   }
 
   @Get(':id')
