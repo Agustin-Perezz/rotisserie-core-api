@@ -93,6 +93,23 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
+  async findByUserId(userId: string): Promise<OrderWithRelations[]> {
+    return this.prisma.order.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+      },
+      include: {
+        orderItems: {
+          include: {
+            item: true,
+          },
+        },
+        shop: true,
+      },
+    });
+  }
+
   async update(id: string, data: UpdateOrderData): Promise<OrderWithRelations> {
     return this.prisma.order.update({
       where: { id },
