@@ -77,4 +77,9 @@ export class MpController {
   async processPayment(@Body() body: ProcessPaymentDto) {
     return await this.mercadoPagoService.processPayment(body, body.ownerId);
   }
+
+  @Post('webhook')
+  async handleWebhook(@Body() body: any, @Query() query: any) {
+    return await this.mercadoPagoService.handleWebhook(body, query);
+  }
 }

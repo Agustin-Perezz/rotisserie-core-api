@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { MercadoPagoConfig, Payment, Preference } from 'mercadopago';
 
 import { OrderService } from '@/order/application/services/order.service';
+import { OrderGateway } from '@/order/infrastructure/gateways/order.gateway';
 import { PaymentAccountService } from '@/payment-account/application/services/payment-account.service';
 
 import { PkceUtils } from './pkce.utils';
@@ -17,6 +18,7 @@ export class MercadoPagoService {
     @Inject(ConfigService) private readonly configService: ConfigService,
     private readonly paymentAccountService: PaymentAccountService,
     private readonly orderService: OrderService,
+    private readonly orderGateway: OrderGateway,
   ) {}
 
   async createPreference(
@@ -129,6 +131,7 @@ export class MercadoPagoService {
       code: code,
       redirect_uri: redirectUri,
       code_verifier: codeVerifier,
+      //test_token: 'true',
     });
 
     try {
@@ -195,5 +198,62 @@ export class MercadoPagoService {
     return new MercadoPagoConfig({
       accessToken,
     });
+  }
+
+  async handleWebhook(body: any, query: any) {
+    try {
+      const topic = query.topic || body.topic;
+      const id = query.id || body.data?.id;
+
+      if (!topic || !id) {
+        return { success: false, message: 'Missing topic or id' };
+      }
+
+      if (topic === 'payment') {
+        const mpApi = this.configService.get('mercadoPago.mpApi') || '';
+
+        const paymentResponse = await fetch(`${mpApi}/v1/payments/${id}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!paymentResponse.ok) {
+          throw new BadRequestException('Failed to fetch payment details');
+        }
+
+        const paymentData = await paymentResponse.json();
+
+        const orderId =
+          paymentData.external_reference || paymentData.metadata?.orderId;
+
+        if (!orderId) {
+          return { success: false, message: 'No order reference found' };
+        }
+
+        const order = await this.orderService.findById(orderId);
+
+        if (
+          paymentData.status === 'approved' ||
+          paymentData.status === 'authorized'
+        ) {
+          this.orderGateway.emitOrderUpdate(order.shopId, order.userId, {
+            ...order,
+            paymentStatus: paymentData.status,
+            paymentId: paymentData.id,
+          });
+        }
+
+        return { success: true, message: 'Webhook processed' };
+      }
+
+      return { success: true, message: 'Webhook received but not processed' };
+    } catch (error) {
+      if (error instanceof Error) {
+        throw new BadRequestException(error.message);
+      }
+      throw new BadRequestException('Failed to process webhook');
+    }
   }
 }
