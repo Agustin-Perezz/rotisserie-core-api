@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 
 import { OrderRepository } from '@/order/infrastructure/persistence/order.repository.impl';
@@ -12,6 +12,7 @@ import { UpdateOrderDto } from '../dto/update-order.dto';
 export class OrderService {
   constructor(
     private orderRepository: OrderRepository,
+    @Inject(forwardRef(() => OrderGateway))
     private orderGateway: OrderGateway,
   ) {}
 
@@ -49,7 +50,7 @@ export class OrderService {
     orderData: UpdateOrderDto,
   ): Promise<OrderWithRelations> {
     const order = await this.orderRepository.update(id, orderData);
-    this.orderGateway.emitOrderUpdate(order.shopId, order);
+    this.orderGateway.emitOrderUpdate(order.shopId, order.userId, order);
     return order;
   }
 

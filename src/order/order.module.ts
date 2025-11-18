@@ -11,6 +11,6 @@ import { OrderRepository } from './infrastructure/persistence/order.repository.i
   imports: [PrismaModule],
   controllers: [OrderController],
   providers: [OrderService, OrderRepository, OrderGateway],
-  exports: [OrderService],
+  exports: [OrderService, OrderGateway],
 })
 export class OrderModule {}
