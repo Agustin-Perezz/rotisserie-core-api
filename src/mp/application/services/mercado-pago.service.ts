@@ -1,9 +1,14 @@
 import { CreatePreferenceDto } from '@mp/application/dto/create-preference.dto';
 import { ProcessPaymentDto } from '@mp/application/dto/process-payment.dto';
 import { OrderToMpItemsMapper } from '@mp/application/mappers/order-to-mp-items.mapper';
-import { MercadoPagoTokenResponse } from '@mp/domain/interfaces/mercado-pago.interface';
+import {
+  MercadoPagoTokenResponse,
+  WebhookNotificationBody,
+  WebhookQueryParams,
+} from '@mp/domain/interfaces/mercado-pago.interface';
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { OrderStatus } from '@prisma/client';
 import { MercadoPagoConfig, Payment, Preference } from 'mercadopago';
 
 import { OrderService } from '@/order/application/services/order.service';
@@ -131,7 +136,6 @@ export class MercadoPagoService {
       code: code,
       redirect_uri: redirectUri,
       code_verifier: codeVerifier,
-      //test_token: 'true',
     });
 
     try {
@@ -200,30 +204,20 @@ export class MercadoPagoService {
     });
   }
 
-  async handleWebhook(body: any, query: any) {
+  async handleWebhook(
+    body: WebhookNotificationBody,
+    query: WebhookQueryParams,
+  ) {
     try {
-      const topic = query.topic || body.topic;
-      const id = query.id || body.data?.id;
+      const topic = body.type || query.type;
+      const resourceId = body.data?.id || query['data.id'];
 
-      if (!topic || !id) {
+      if (!topic || !resourceId) {
         return { success: false, message: 'Missing topic or id' };
       }
 
       if (topic === 'payment') {
-        const mpApi = this.configService.get('mercadoPago.mpApi') || '';
-
-        const paymentResponse = await fetch(`${mpApi}/v1/payments/${id}`, {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!paymentResponse.ok) {
-          throw new BadRequestException('Failed to fetch payment details');
-        }
-
-        const paymentData = await paymentResponse.json();
+        const paymentData = await this.getPaymentDetails(resourceId);
 
         const orderId =
           paymentData.external_reference || paymentData.metadata?.orderId;
@@ -234,16 +228,29 @@ export class MercadoPagoService {
 
         const order = await this.orderService.findById(orderId);
 
+        let newStatus = order.status;
         if (
           paymentData.status === 'approved' ||
           paymentData.status === 'authorized'
         ) {
-          this.orderGateway.emitOrderUpdate(order.shopId, order.userId, {
-            ...order,
-            paymentStatus: paymentData.status,
-            paymentId: paymentData.id,
-          });
+          newStatus = OrderStatus.PAID;
+        } else if (
+          paymentData.status === 'rejected' ||
+          paymentData.status === 'cancelled'
+        ) {
+          newStatus = OrderStatus.CANCELLED;
         }
+
+        const updatedOrder = await this.orderService.update(orderId, {
+          status: newStatus,
+          paymentId: paymentData.id?.toString(),
+        });
+
+        this.orderGateway.emitOrderUpdate(
+          updatedOrder.shopId,
+          updatedOrder.userId,
+          updatedOrder,
+        );
 
         return { success: true, message: 'Webhook processed' };
       }
@@ -255,5 +262,15 @@ export class MercadoPagoService {
       }
       throw new BadRequestException('Failed to process webhook');
     }
+  }
+
+  private async getPaymentDetails(paymentId: string | number) {
+    const mpClient = this.createMercadoPagoClient(
+      this.configService.get('mercadoPago.accessToken') || '',
+    );
+
+    const paymentClient = new Payment(mpClient);
+
+    return await paymentClient.get({ id: paymentId });
   }
 }

@@ -15,6 +15,7 @@ datasource db {
 
 enum OrderStatus {
   PENDING
+  PAID
   PREPARING
   READY
   SENT
@@ -82,6 +83,7 @@ model Order {
   shopId      String
   shop        Shop        @relation(fields: [shopId], references: [id])
   status      OrderStatus @default(PENDING)
+  paymentId   String?
   createdAt   DateTime    @default(now())
   deletedAt   DateTime?
   orderItems  OrderItem[]
