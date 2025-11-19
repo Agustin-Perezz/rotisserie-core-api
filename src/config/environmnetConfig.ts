@@ -4,6 +4,7 @@ export const environmentConfig = () => ({
     authApi: process.env.MP_AUTH_API,
     clientId: process.env.MP_CLIENT_ID,
     clientSecret: process.env.MP_CLIENT_SECRET,
+    accessToken: process.env.MP_ACCESS_TOKEN,
     redirectUri: process.env.MP_REDIRECT_URI,
   },
   firebase: {
