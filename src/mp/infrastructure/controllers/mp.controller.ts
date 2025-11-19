@@ -2,6 +2,10 @@ import { CreatePreferenceDto } from '@mp/application/dto/create-preference.dto';
 import { ProcessPaymentDto } from '@mp/application/dto/process-payment.dto';
 import { MercadoPagoService } from '@mp/application/services/mercado-pago.service';
 import {
+  WebhookNotificationBody,
+  WebhookQueryParams,
+} from '@mp/domain/interfaces/mercado-pago.interface';
+import {
   BadRequestException,
   Body,
   Controller,
@@ -79,7 +83,10 @@ export class MpController {
   }
 
   @Post('webhook')
-  async handleWebhook(@Body() body: any, @Query() query: any) {
+  async handleWebhook(
+    @Body() body: WebhookNotificationBody,
+    @Query() query: WebhookQueryParams,
+  ) {
     return await this.mercadoPagoService.handleWebhook(body, query);
   }
 }
