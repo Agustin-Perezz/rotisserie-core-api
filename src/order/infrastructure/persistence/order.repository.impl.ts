@@ -52,6 +52,9 @@ export class OrderRepository implements IOrderRepository {
         },
         shop: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 
@@ -90,6 +93,9 @@ export class OrderRepository implements IOrderRepository {
         },
         shop: true,
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     });
   }
 
@@ -106,6 +112,9 @@ export class OrderRepository implements IOrderRepository {
           },
         },
         shop: true,
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
   }
