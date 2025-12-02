@@ -14,6 +14,7 @@ import {
 import { OrderStatus } from '@prisma/client';
 
 import { CreateOrderDto } from '../../application/dto/create-order.dto';
+import { GetOrdersQueryDto } from '../../application/dto/get-orders-query.dto';
 import { UpdateOrderDto } from '../../application/dto/update-order.dto';
 import { OrderService } from '../../application/services/order.service';
 
@@ -42,8 +43,11 @@ export class OrderController {
   }
 
   @Get('user/:userId')
-  findByUserId(@Param('userId') userId: string) {
-    return this.orderService.findByUserId(userId);
+  findByUserId(
+    @Param('userId') userId: string,
+    @Query() query: GetOrdersQueryDto,
+  ) {
+    return this.orderService.findByUserId(userId, query.createdAt);
   }
 
   @Get(':id')

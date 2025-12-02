@@ -41,8 +41,11 @@ export class OrderService {
     return this.orderRepository.findByShopId(shopId, status);
   }
 
-  async findByUserId(userId: string): Promise<OrderWithRelations[]> {
-    return this.orderRepository.findByUserId(userId);
+  async findByUserId(
+    userId: string,
+    createdAt?: string,
+  ): Promise<OrderWithRelations[]> {
+    return this.orderRepository.findByUserId(userId, createdAt);
   }
 
   async update(
