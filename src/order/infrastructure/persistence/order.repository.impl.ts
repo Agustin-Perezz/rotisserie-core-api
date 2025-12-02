@@ -9,6 +9,7 @@ import {
   OrderWithRelations,
   UpdateOrderData,
 } from '../../domain/interfaces/order.repository';
+import { getDateRange } from '../../domain/utils/date.utils';
 
 @Injectable()
 export class OrderRepository implements IOrderRepository {
@@ -99,11 +100,17 @@ export class OrderRepository implements IOrderRepository {
     });
   }
 
-  async findByUserId(userId: string): Promise<OrderWithRelations[]> {
+  async findByUserId(
+    userId: string,
+    createdAt?: string,
+  ): Promise<OrderWithRelations[]> {
+    const dateFilter = createdAt ? getDateRange(createdAt) : undefined;
+
     return this.prisma.order.findMany({
       where: {
         userId,
         deletedAt: null,
+        ...(dateFilter && { createdAt: dateFilter }),
       },
       include: {
         orderItems: {
