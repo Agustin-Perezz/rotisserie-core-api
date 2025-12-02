@@ -421,5 +421,16 @@ describe('OrderController', () => {
       expect(Array.isArray(userOrdersRes.body)).toBe(true);
       expect(userOrdersRes.body.length).toBe(0);
     });
+
+    it('should return empty array when filtering by date with no orders', async () => {
+      const pastDate = '2020-01-01';
+
+      const res = await request(app.getHttpServer())
+        .get(`/orders/user/1?createdAt=${pastDate}`)
+        .expect(200);
+
+      expect(Array.isArray(res.body)).toBe(true);
+      expect(res.body.length).toBe(0);
+    });
   });
 });
